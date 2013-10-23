@@ -1,4 +1,4 @@
-# angular-kinvey
+# ngKinvey
 
 [![Build Status](https://travis-ci.org/ninjatronic/ngKinvey.png)](https://travis-ci.org/ninjatronic/ngKinvey)
 
