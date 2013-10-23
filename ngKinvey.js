@@ -144,9 +144,9 @@
                     });
 
                     function Object(className) {
-                        return $resource(baseUrl + appdata + appKey + '/' + className + '/:id', {_id: '@_id'}, {
+                        return $resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
                             create: {
-                                method: 'PUT',
+                                method: 'POST',
                                 headers: headers.user,
                                 params: {
                                     _id: ''

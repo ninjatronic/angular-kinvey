@@ -74,7 +74,8 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-strip');
 
     grunt.registerTask('test', ['jshint', 'karma:jasmine', 'karma:scenario']);
+    grunt.registerTask('testUnit', ['jshint', 'karma:jasmine']);
     grunt.registerTask('testAll', ['jshint', 'karma:jasmine', 'karma:scenario', 'karma:jasmineMin', 'karma:scenarioMin']);
     grunt.registerTask('build', ['uglify', 'strip', 'karma:jasmineMin', 'karma:scenarioMin']);
-    grunt.registerTask('default', ['watch:all']);
+    grunt.registerTask('default', ['watch:unit']);
 };
