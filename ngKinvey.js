@@ -52,7 +52,7 @@
                         return deferred.promise;
                     }
 
-                    var User = $resource(baseUrl + userdata + appKey + '/:_id', {_id: '@_id'} ,{
+                    var User = mongolise($resource(baseUrl + userdata + appKey + '/:_id', {_id: '@_id'} ,{
                         login: {
                             method: 'POST',
                             params: {
@@ -126,7 +126,7 @@
                             },
                             headers: headers.user
                         }
-                    });
+                    }));
 
                     var Group = $resource(baseUrl + groupdata + appKey + '/:_id', {_id: '@_id'}, {
                         get: {
@@ -144,7 +144,7 @@
                     });
 
                     function Object(className) {
-                        var retVal = $resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
+                        return mongolise($resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
                             create: {
                                 method: 'POST',
                                 headers: headers.user,
@@ -172,20 +172,21 @@
                                     _id: ''
                                 }
                             }
+                        }));
+                    }
+
+                    var mongoMethods = ['query', 'delete'];
+                    function mongolise(resourceDef) {
+                        angular.forEach(mongoMethods, function(method) {
+                            var origMethod = resourceDef[method];
+                            resourceDef[method] = function(a1, a2, a3, a4) {
+                                if(a1.query) {
+                                    a1.query = JSON.stringify(a1.query);
+                                }
+                                return origMethod(a1, a2, a3, a4);
+                            };
                         });
-                        var origGet = retVal.query;
-                        retVal.query = function(a1, a2, a3, a4) {
-                            /*
-                             * This is a very hacky solution to protecting the '$' namespace
-                             * inside queries so that mongo operators remain untouched. Hopefully
-                             * one day a more elegant solution will come from Angular themselves.
-                             */
-                            if(a1.query) {
-                                a1.query = JSON.stringify(a1.query);
-                            }
-                            return origGet(a1, a2, a3, a4);
-                        };
-                        return retVal;
+                        return resourceDef;
                     }
 
                     return {
