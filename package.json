@@ -1,0 +1,33 @@
+{
+    "name": "ngKinvey",
+    "version": "v0.0.1",
+    "author": "Ninjatronic",
+    "description": "AngularJS support for Kinvey BaaS",
+    "contributors": [
+        {
+            "name": "Pete Martin",
+            "email": "pete@ninjatronic.com"
+        }
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ninjatronic/ngKinvey.git"
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "grunt": "latest",
+        "bower": "latest",
+        "grunt-cli": "latest",
+        "phantomjs": "latest",
+        "grunt-contrib-jshint": "latest",
+        "grunt-contrib-watch": "latest",
+        "grunt-contrib-uglify": "latest",
+        "grunt-karma": "latest",
+        "grunt-notify": "latest",
+        "grunt-strip": "latest",
+        "grunt-text-replace": "latest"
+    },
+    "scripts": {
+        "test": "grunt test"
+    }
+}

@@ -1,0 +1,25 @@
+{
+    "name": "ngKinvey",
+    "version": "v0.0.1",
+    "ignore": [
+        "test/",
+        "package.json",
+        "Gruntfile.js",
+        ".travis.yml"
+    ],
+    "main": [
+        "ngKinvey.js",
+        "ngKinvey.min.js"
+    ],
+    "dependencies": {
+        "angular": ">= v1.2.0-rc.3",
+        "angular-resource": ">= v1.2.0-rc.3",
+        "ngBase64": ">= v2.0.0"
+    },
+    "devDependencies": {
+        "angular": ">= v1.2.0-rc.3",
+        "angular-mocks": ">= v1.2.0-rc.3",
+        "angular-resource": ">= v1.2.0-rc.3",
+        "ngBase64": ">= v2.0.0"
+    }
+}
