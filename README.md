@@ -8,4 +8,4 @@ AngularJS support for Kinvey BaaS
 
 ## Dependencies
 
-* [angular-base64](https://github.com/ninjatronic/angular-base64)
+* [ngBase64](https://github.com/ninjatronic/ngBase64)
