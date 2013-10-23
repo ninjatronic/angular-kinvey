@@ -27,6 +27,12 @@ module.exports = function(grunt) {
             },
             scenario: {
                 configFile: 'test/scenario.conf.js'
+            },
+            jasmineMin: {
+                configFile: 'test/jasmineMin.conf.js'
+            },
+            scenarioMin: {
+                configFile: 'test/scenarioMin.conf.js'
             }
         },
         strip: {
@@ -68,6 +74,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-strip');
 
     grunt.registerTask('test', ['jshint', 'karma:jasmine', 'karma:scenario']);
-    grunt.registerTask('build', ['uglify', 'strip']);
+    grunt.registerTask('testAll', ['jshint', 'karma:jasmine', 'karma:scenario', 'karma:jasmineMin', 'karma:scenarioMin']);
+    grunt.registerTask('build', ['uglify', 'strip', 'karma:jasmineMin', 'karma:scenarioMin']);
     grunt.registerTask('default', ['watch:all']);
 };

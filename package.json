@@ -28,6 +28,6 @@
         "grunt-text-replace": "latest"
     },
     "scripts": {
-        "test": "grunt test"
+        "test": "grunt testAll"
     }
 }
