@@ -492,5 +492,97 @@ describe('$kinvey', function() {
 
         });
 
+        describe('complex queries', function() {
+
+            var user;
+
+            it('should signup the temporary user', function() {
+                runs(function() {
+                    user = $kinvey
+                        .User
+                        .signup({
+                            username: 'groupTestUsername',
+                            password: 'testPassword',
+                            firstName: 'Test',
+                            lastName: 'User'
+                        });
+                });
+                waitsFor(function() {
+                    return user.$resolved;
+                });
+            });
+
+            it('should create some test objects', function() {
+                var object;
+                runs(function() {
+                    object = $kinvey.Object('classname').create({description: 'giraffe', amount: 3});
+                });
+                waitsFor(function() {
+                    return object.$resolved;
+                });
+                runs(function() {
+                    expect(object._id).toBeDefined();
+                    expect(object.description).toBe('giraffe');
+                });
+                runs(function() {
+                    object = $kinvey.Object('classname').create({description: 'dolphin', amount: 5});
+                });
+                waitsFor(function() {
+                    return object.$resolved;
+                });
+                runs(function() {
+                    expect(object._id).toBeDefined();
+                    expect(object.description).toBe('dolphin');
+                });
+                runs(function() {
+                    object = $kinvey.Object('classname').create({description: 'marmot', amount: 7});
+                });
+                waitsFor(function() {
+                    return object.$resolved;
+                });
+                runs(function() {
+                    expect(object._id).toBeDefined();
+                    expect(object.description).toBe('marmot');
+                });
+            });
+
+            it('should query the test objects', function() {
+                var results;
+                runs(function() {
+                    results = $kinvey.Object('classname').query({query: {amount: {$gte: 5}}});
+                });
+                waitsFor(function() {
+                    return results.$resolved;
+                });
+                runs(function() {
+                    expect(results.length).toBe(2);
+                });
+            });
+
+            it('should delete the test objects', function() {
+                var results;
+                runs(function() {
+                    results = $kinvey.Object('classname').delete({query: {}});
+                })
+                waitsFor(function() {
+                    return results.$resolved;
+                });
+                runs(function() {
+                    expect(results.count).toBe(3);
+                });
+            });
+
+            it('should delete the temporary user', function() {
+                var response;
+                runs(function() {
+                    response = $kinvey.User.delete({_id: user._id});
+                });
+                waitsFor(function() {
+                    return response.$resolved;
+                });
+            });
+
+        });
+
     });
 });

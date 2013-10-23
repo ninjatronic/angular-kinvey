@@ -144,7 +144,7 @@
                     });
 
                     function Object(className) {
-                        return $resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
+                        var retVal = $resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
                             create: {
                                 method: 'POST',
                                 headers: headers.user,
@@ -173,6 +173,19 @@
                                 }
                             }
                         });
+                        var origGet = retVal.query;
+                        retVal.query = function(a1, a2, a3, a4) {
+                            /*
+                             * This is a very hacky solution to protecting the '$' namespace
+                             * inside queries so that mongo operators remain untouched. Hopefully
+                             * one day a more elegant solution will come from Angular themselves.
+                             */
+                            if(a1.query) {
+                                a1.query = JSON.stringify(a1.query);
+                            }
+                            return origGet(a1, a2, a3, a4);
+                        };
+                        return retVal;
                     }
 
                     return {

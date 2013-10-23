@@ -287,5 +287,58 @@ describe('$kinvey', function() {
             });
 
         });
+
+        describe('query $ namespace with _$ namespace', function() {
+
+            it('should be defined', function() {
+                expect($kinvey.Object('classname').query).toBeDefined();
+            });
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('GET', 'https://baas.kinvey.com/appdata/appkey/classname?query=%7B%22age%22:%7B%22$gte%22:5%7D%7D')
+                    .respond([{
+                        _id: '_id',
+                        description: 'giraffe',
+                        anotherField: 'dolphin'
+                    }]);
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
+                $kinvey.User.login({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
+                $httpBackend.flush();
+            });
+
+            afterEach(function() {
+                $httpBackend.verifyNoOutstandingExpectation();
+                $httpBackend.verifyNoOutstandingRequest();
+            });
+
+            it('should make an authorized GET request to ../appdata/appkey/classname?query={"amount":{"$gte",5}}', function() {
+                $httpBackend.expectGET('https://baas.kinvey.com/appdata/appkey/classname?query=%7B%22age%22:%7B%22$gte%22:5%7D%7D', {
+                    "X-Kinvey-API-Version":3,
+                    "Authorization":"Kinvey authtoken",
+                    "Accept":"application/json, text/plain, */*"
+                });
+                $kinvey.Object('classname').query({query: {age:{$gte:5}}});
+                $httpBackend.flush();
+            });
+
+            it('should return an appropriate resource object', function() {
+                var object = $kinvey.Object('classname').query({query: {age:{$gte:5}}});
+                $httpBackend.flush();
+                expect(object[0].anotherField).toBe('dolphin');
+            });
+
+        });
     });
 });
