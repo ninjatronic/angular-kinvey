@@ -14,11 +14,13 @@ describe('$kinvey', function() {
     });
 
     describe('user', function() {
+
         it('should be defined', function() {
             expect($kinvey.User).toBeDefined();
         });
 
         describe('login', function() {
+
             var request = {
                 'username':'badger',
                 'password':'giraffe'
@@ -62,9 +64,11 @@ describe('$kinvey', function() {
                 $httpBackend.flush();
                 expect(result._id).toBe(expected._id);
             });
+
         });
 
         describe('current', function() {
+
             var expected = {
                 username: 'badger',
                 _id: 'goat',
@@ -110,9 +114,11 @@ describe('$kinvey', function() {
                 $httpBackend.flush();
                 expect(result._id).toBe(expected._id);
             });
+
         });
 
         describe('logout', function() {
+
             var expected = {
                 username: 'badger',
                 _id: 'goat',
@@ -153,9 +159,11 @@ describe('$kinvey', function() {
                 $kinvey.User.logout();
                 $httpBackend.flush();
             });
+
         });
 
         describe('signup', function() {
+
             var request = {
                 'username':'badger',
                 'password':'giraffe'
@@ -199,9 +207,11 @@ describe('$kinvey', function() {
                 $httpBackend.flush();
                 expect(result._id).toBe(expected._id);
             });
+
         });
 
         describe('get', function() {
+
             var expected = {
                 username: 'badger',
                 _id: 'goat',
@@ -248,9 +258,11 @@ describe('$kinvey', function() {
                 $httpBackend.flush();
                 expect(result._id).toBe(expected._id);
             });
+
         });
 
         describe('delete', function() {
+
             var expected = {
                 username: 'badger',
                 _id: 'goat',
@@ -291,9 +303,11 @@ describe('$kinvey', function() {
                 $kinvey.User.delete({_id: 'userId'});
                 $httpBackend.flush();
             });
+
         });
 
         describe('remove', function() {
+
             var expected = {
                 username: 'badger',
                 _id: 'goat',
@@ -334,9 +348,11 @@ describe('$kinvey', function() {
                 $kinvey.User.remove({_id: 'userId'});
                 $httpBackend.flush();
             });
+
         });
 
         describe('save', function() {
+
             var loggedIn = {
                 username: 'badger',
                 _id: 'userId',
@@ -394,9 +410,11 @@ describe('$kinvey', function() {
                 $httpBackend.flush();
                 expect(user.firstName).toBe('giraffe');
             });
+
         });
 
         describe('query', function() {
+
             var loggedIn = {
                 username: 'badger',
                 _id: 'userId',
@@ -452,6 +470,51 @@ describe('$kinvey', function() {
                 expect(result[0]._id).toBe(expected[0]._id);
                 expect(result[1]._id).toBe(expected[1]._id);
             });
-        })
+
+        });
+
+        describe('verifyEmail', function() {
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/rpc/appkey/username/user-email-verification-initiate')
+                    .respond(204);
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond({
+                        username: 'username',
+                        _id: 'userId',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
+                $kinvey.User.login({
+                    username:'username',
+                    password:'password'
+                });
+                $httpBackend.flush();
+            });
+
+            afterEach(function() {
+                $httpBackend.verifyNoOutstandingExpectation();
+                $httpBackend.verifyNoOutstandingRequest();
+            });
+
+            it('should be defined', function() {
+                expect($kinvey.User.verifyEmail).toBeDefined();
+            });
+
+            it('should make a POST request to /rpc/appkey/username/user-email-verification-initiate', function() {
+                $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/username/user-email-verification-initiate', undefined, {
+                    "X-Kinvey-API-Version":3,
+                    "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
+                    "Accept":"application/json, text/plain, */*",
+                    "Content-Type":"application/json;charset=utf-8"
+                });
+                $kinvey.User.verifyEmail('username');
+                $httpBackend.flush();
+            });
+
+        });
     });
 });

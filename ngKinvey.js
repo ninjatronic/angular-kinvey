@@ -12,6 +12,7 @@
             var appdata = 'appdata/';
             var userdata = 'user/';
             var groupdata = 'group/';
+            var rpc = 'rpc/';
 
             var headers = {
                 user: {
@@ -128,6 +129,10 @@
                         }
                     }));
 
+                    expand(User, 'verifyEmail', function(username) {
+                        return $http.post(baseUrl+rpc+appKey+'/'+username+'/user-email-verification-initiate', {}, {headers: headers.basic});
+                    });
+
                     var Group = $resource(baseUrl + groupdata + appKey + '/:_id', {_id: '@_id'}, {
                         get: {
                             method: 'GET',
@@ -186,6 +191,11 @@
                                 return origMethod(a1, a2, a3, a4);
                             };
                         });
+                        return resourceDef;
+                    }
+
+                    function expand(resourceDef, expansionKey, expansion) {
+                        resourceDef[expansionKey] = expansion;
                         return resourceDef;
                     }
 
