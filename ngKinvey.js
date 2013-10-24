@@ -133,6 +133,10 @@
                         return $http.post(baseUrl+rpc+appKey+'/'+username+'/user-email-verification-initiate', {}, {headers: headers.basic});
                     });
 
+                    expand(User, 'resetPassword', function(username) {
+                        return $http.post(baseUrl+rpc+appKey+'/'+username+'/user-password-reset-initiate', {}, {headers: headers.basic});
+                    });
+
                     var Group = $resource(baseUrl + groupdata + appKey + '/:_id', {_id: '@_id'}, {
                         get: {
                             method: 'GET',

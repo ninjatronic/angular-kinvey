@@ -201,6 +201,28 @@ describe('$kinvey', function() {
             });
         });
 
+        it('should initiate password reset', function() {
+            var user;
+            var result;
+            runs(function() {
+                user = $kinvey.User.current();
+            });
+            waitsFor(function() {
+                return user.$resolved;
+            });
+            runs(function() {
+                $kinvey.User.resetPassword(user.username).then(function(data) {
+                    result = data.status;
+                });
+            });
+            waitsFor(function() {
+                return result;
+            });
+            runs(function() {
+                expect(result).toBe(204);
+            });
+        });
+
         it('should delete the current user \'badger\'', function() {
             var response;
             var user;

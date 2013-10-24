@@ -516,5 +516,49 @@ describe('$kinvey', function() {
             });
 
         });
+
+        describe('resetPassword', function() {
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/rpc/appkey/username/user-password-reset-initiate')
+                    .respond(204);
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond({
+                        username: 'username',
+                        _id: 'userId',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
+                $kinvey.User.login({
+                    username:'username',
+                    password:'password'
+                });
+                $httpBackend.flush();
+            });
+
+            afterEach(function() {
+                $httpBackend.verifyNoOutstandingExpectation();
+                $httpBackend.verifyNoOutstandingRequest();
+            });
+
+            it('should be defined', function() {
+                expect($kinvey.User.resetPassword).toBeDefined();
+            });
+
+            it('should make a POST request to /rpc/appkey/username/user-password-reset-initiate', function() {
+                $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/username/user-password-reset-initiate', undefined, {
+                    "X-Kinvey-API-Version":3,
+                    "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
+                    "Accept":"application/json, text/plain, */*",
+                    "Content-Type":"application/json;charset=utf-8"
+                });
+                $kinvey.User.resetPassword('username');
+                $httpBackend.flush();
+            });
+
+        });
     });
 });
