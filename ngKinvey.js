@@ -101,6 +101,14 @@
                             method: 'GET',
                             headers: headers.user
                         },
+                        lookup: {
+                            method: 'POST',
+                            headers: headers.user,
+                            isArray:true,
+                            params: {
+                                _id: '_lookup'
+                            }
+                        },
                         save:   {
                             method:'PUT',
                             headers: headers.user

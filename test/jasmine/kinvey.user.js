@@ -261,6 +261,61 @@ describe('$kinvey', function() {
 
         });
 
+        describe('lookup', function() {
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/_lookup')
+                    .respond([{
+                        username: 'badger',
+                        _id: 'goat'
+                    }]);
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
+                $kinvey.User.login({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
+                $httpBackend.flush();
+            });
+
+            afterEach(function() {
+                $httpBackend.verifyNoOutstandingExpectation();
+                $httpBackend.verifyNoOutstandingRequest();
+            });
+
+            it('should be defined', function() {
+                expect($kinvey.User.lookup).toBeDefined();
+            });
+
+            it('should make a POST request to ../_lookup', function() {
+                $httpBackend.expectPOST('https://baas.kinvey.com/user/appkey/_lookup', {
+                    username: 'badger'
+                }, {
+                    "X-Kinvey-API-Version":3,
+                    "Authorization":"Kinvey authtoken",
+                    "Accept":"application/json, text/plain, */*",
+                    "Content-Type":"application/json;charset=utf-8"
+                });
+                $kinvey.User.lookup({username: 'badger'});
+                $httpBackend.flush();
+            });
+
+            it('should return an appropriate resource array', function() {
+                var result = $kinvey.User.lookup({username: 'badger'});
+                $httpBackend.flush();
+                expect(result[0].username).toBe('badger');
+            });
+
+        });
+
         describe('delete', function() {
 
             var expected = {

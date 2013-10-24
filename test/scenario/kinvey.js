@@ -134,6 +134,19 @@ describe('$kinvey', function() {
             });
         });
 
+        it('should lookup the current user by username', function() {
+            var user;
+            runs(function() {
+                user = $kinvey.User.lookup({username: 'badger'});
+            });
+            waitsFor(function() {
+                return user.$resolved;
+            });
+            runs(function() {
+                expect(user[0].username).toBe('badger');
+            });
+        });
+
         it('should logout the current user', function() {
             var response;
             var user;
