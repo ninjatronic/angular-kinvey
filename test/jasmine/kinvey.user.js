@@ -560,5 +560,62 @@ describe('$kinvey', function() {
             });
 
         });
+
+        describe('checkUsernameExists', function() {
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/rpc/appkey/check-username-exists')
+                    .respond({
+                        usernameExists: false
+                    });
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond({
+                        username: 'username',
+                        _id: 'userId',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
+                $kinvey.User.login({
+                    username:'username',
+                    password:'password'
+                });
+                $httpBackend.flush();
+            });
+
+            afterEach(function() {
+                $httpBackend.verifyNoOutstandingExpectation();
+                $httpBackend.verifyNoOutstandingRequest();
+            });
+
+            it('should be defined', function() {
+                expect($kinvey.User.checkUsernameExists).toBeDefined();
+            });
+
+            it('should make a POST request to /rpc/appkey/check-username-exists', function() {
+                $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/check-username-exists', {
+                    username: 'username'
+                }, {
+                    "X-Kinvey-API-Version":3,
+                    "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
+                    "Accept":"application/json, text/plain, */*",
+                    "Content-Type":"application/json;charset=utf-8"
+                });
+                $kinvey.User.checkUsernameExists('username');
+                $httpBackend.flush();
+            });
+
+            it('should resolve the response appropriately', function() {
+                var response;
+                $kinvey.User.checkUsernameExists('username').then(function(result) {
+                    response = result;
+                });
+                $httpBackend.flush();
+                expect(response).toBe(false);
+            });
+
+        });
     });
 });

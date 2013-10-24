@@ -132,9 +132,21 @@
                     expand(User, 'verifyEmail', function(username) {
                         return $http.post(baseUrl+rpc+appKey+'/'+username+'/user-email-verification-initiate', {}, {headers: headers.basic});
                     });
-
                     expand(User, 'resetPassword', function(username) {
                         return $http.post(baseUrl+rpc+appKey+'/'+username+'/user-password-reset-initiate', {}, {headers: headers.basic});
+                    });
+                    expand(User, 'checkUsernameExists', function(username) {
+                        var deferred = $q.defer();
+                        $http.post(baseUrl+rpc+appKey+'/check-username-exists', {
+                            username: username
+                        }, {
+                            headers: headers.basic
+                        }).then(function(response) {
+                                deferred.resolve(response.data.usernameExists);
+                            }, function() {
+                                deferred.reject();
+                            });
+                        return deferred.promise;
                     });
 
                     var Group = $resource(baseUrl + groupdata + appKey + '/:_id', {_id: '@_id'}, {

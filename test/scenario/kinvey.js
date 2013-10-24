@@ -45,6 +45,21 @@ describe('$kinvey', function() {
 
     describe('$kinvey.user', function() {
 
+        it('should check that the username is available', function() {
+            var result;
+            runs(function() {
+                $kinvey.User.checkUsernameExists('badger').then(function(response) {
+                    result = response;
+                });
+            });
+            waitsFor(function() {
+                return result != undefined;
+            });
+            runs(function() {
+                expect(result).toBe(false);
+            });
+        });
+
         it('should signup a user \'badger\'', function() {
             var user;
             runs(function() {
@@ -63,6 +78,21 @@ describe('$kinvey', function() {
                 expect(user.username).toBe('badger');
                 expect(user.firstName).toBe('giraffe');
                 expect(user.lastName).toBe('hippo');
+            });
+        });
+
+        it('should check that the username is now unavailable', function() {
+            var result;
+            runs(function() {
+                $kinvey.User.checkUsernameExists('badger').then(function(response) {
+                    result = response;
+                });
+            });
+            waitsFor(function() {
+                return result != undefined;
+            });
+            runs(function() {
+                expect(result).toBe(true);
             });
         });
 
