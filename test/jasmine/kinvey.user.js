@@ -351,6 +351,49 @@ describe('$kinvey', function() {
 
         });
 
+        describe('suspend', function() {
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('DELETE', 'https://baas.kinvey.com/user/appkey/userId')
+                    .respond(204);
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
+                $kinvey.User.login({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
+                $httpBackend.flush();
+            });
+
+            afterEach(function() {
+                $httpBackend.verifyNoOutstandingExpectation();
+                $httpBackend.verifyNoOutstandingRequest();
+            });
+
+            it('should be defined', function() {
+                expect($kinvey.User.suspend).toBeDefined();
+            });
+
+            it('should make a DELETE request to ../:id', function() {
+                $httpBackend.expectDELETE('https://baas.kinvey.com/user/appkey/userId', {
+                    'Accept':'application/json, text/plain, */*',
+                    'X-Kinvey-API-Version':3,
+                    'Authorization':'Kinvey authtoken'
+                });
+                $kinvey.User.suspend({_id: 'userId'});
+                $httpBackend.flush();
+            });
+
+        });
+
         describe('save', function() {
 
             var loggedIn = {

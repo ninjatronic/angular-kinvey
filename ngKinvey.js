@@ -126,6 +126,10 @@
                                 hard: true
                             },
                             headers: headers.user
+                        },
+                        suspend: {
+                            method:'DELETE',
+                            headers: headers.user
                         }
                     }));
 
@@ -215,12 +219,31 @@
                         return resourceDef;
                     }
 
-                    return {
+                    function verifyAlias(alias, protectedName) {
+                        if(alias === protectedName) {
+                            throw 'aliases must not attempt to overwrite $kinvey.'+protectedName;
+                        }
+                    }
+
+                    function alias(classname, aliasname) {
+                        verifyAlias(aliasname, 'handshake');
+                        verifyAlias(aliasname, 'User');
+                        verifyAlias(aliasname, 'Group');
+                        verifyAlias(aliasname, 'Object');
+                        verifyAlias(aliasname, 'alias');
+
+                        retVal[aliasname] = Object(classname);
+                    }
+
+                    var retVal = {
                         handshake: handshake,
                         User: User,
                         Group: Group,
-                        Object: Object
+                        Object: Object,
+                        alias: alias
                     };
+
+                    return retVal;
                 }]
             };
     }]);

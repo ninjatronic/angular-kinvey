@@ -253,7 +253,7 @@ describe('$kinvey', function() {
             });
         });
 
-        it('should delete the current user \'badger\'', function() {
+        it('should delete the current user', function() {
             var response;
             var user;
             runs(function() {
@@ -411,9 +411,13 @@ describe('$kinvey', function() {
                 });
             });
 
+            it('should create an alias', function() {
+                $kinvey.alias('classname', 'TestObject');
+            });
+
             it('should create a test object', function() {
                 runs(function() {
-                    object = $kinvey.Object('classname').create({description: 'giraffe'});
+                    object = $kinvey.TestObject.create({description: 'giraffe'});
                 });
                 waitsFor(function() {
                     return object.$resolved;
@@ -426,7 +430,7 @@ describe('$kinvey', function() {
 
             it('should fetch the test object', function() {
                 runs(function() {
-                    object = $kinvey.Object('classname').get({_id: object._id});
+                    object = $kinvey.TestObject.get({_id: object._id});
                 })
                 waitsFor(function() {
                     return object.$resolved;
@@ -439,7 +443,7 @@ describe('$kinvey', function() {
 
             it('should delete the test object', function() {
                 runs(function() {
-                    object = $kinvey.Object('classname').delete({_id: object._id});
+                    object = $kinvey.TestObject.delete({_id: object._id});
                 })
                 waitsFor(function() {
                     return object.$resolved;
