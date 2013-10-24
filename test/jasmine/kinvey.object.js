@@ -184,6 +184,57 @@ describe('$kinvey', function() {
 
         });
 
+        describe('count', function() {
+
+            it('should be defined', function() {
+                expect($kinvey.Object('classname').count).toBeDefined();
+            });
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('GET', 'https://baas.kinvey.com/appdata/appkey/classname/_count')
+                    .respond({
+                        count: 5
+                    });
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
+                $kinvey.User.login({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
+                $httpBackend.flush();
+            });
+
+            afterEach(function() {
+                $httpBackend.verifyNoOutstandingExpectation();
+                $httpBackend.verifyNoOutstandingRequest();
+            });
+
+            it('should make an authorized GET request to ../appdata/appkey/classname/_count', function() {
+                $httpBackend.expectGET('https://baas.kinvey.com/appdata/appkey/classname/_count', {
+                    "X-Kinvey-API-Version":3,
+                    "Authorization":"Kinvey authtoken",
+                    "Accept":"application/json, text/plain, */*"
+                });
+                $kinvey.Object('classname').count();
+                $httpBackend.flush();
+            });
+
+            it('should return an appropriate resource object', function() {
+                var object = $kinvey.Object('classname').count();
+                $httpBackend.flush();
+                expect(object.count).toBe(5);
+            });
+
+        });
+
         describe('delete', function() {
 
             it('should be defined', function() {

@@ -536,12 +536,25 @@ describe('$kinvey', function() {
                 var results;
                 runs(function() {
                     results = $kinvey.Object('classname').query({query: {description:'dolphin'}});
-                })
+                });
                 waitsFor(function() {
                     return results.$resolved;
                 });
                 runs(function() {
                     expect(results.length).toBe(1);
+                });
+            });
+
+            it('should count the test objects', function() {
+                var result;
+                runs(function() {
+                    result = $kinvey.Object('classname').count();
+                });
+                waitsFor(function() {
+                    return result.$resolved;
+                });
+                runs(function() {
+                    expect(result.count).toBe(3);
                 });
             });
 

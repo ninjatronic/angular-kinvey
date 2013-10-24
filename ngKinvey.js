@@ -189,6 +189,13 @@
                                 method: 'GET',
                                 headers: headers.user
                             },
+                            count: {
+                                method: 'GET',
+                                headers: headers.user,
+                                params: {
+                                    _id: '_count'
+                                }
+                            },
                             save: {
                                 method: 'PUT',
                                 headers: headers.user
