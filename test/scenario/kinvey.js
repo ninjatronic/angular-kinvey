@@ -36,7 +36,7 @@ describe('$kinvey', function() {
                 return result;
             });
             runs(function() {
-                expect(result.version).toBe('3.2.0');
+                expect(result.version).toBe('3.2.1');
                 expect(result.kinvey).toBe('hello angular-kinvey');
             });
         });
@@ -673,6 +673,114 @@ describe('$kinvey', function() {
                 });
                 runs(function() {
                     expect(results.count).toBe(3);
+                });
+            });
+
+            it('should delete the temporary user', function() {
+                var response;
+                runs(function() {
+                    response = $kinvey.User.delete({_id: user._id});
+                });
+                waitsFor(function() {
+                    return response.$resolved;
+                });
+            });
+
+        });
+
+        describe('aggregation', function() {
+
+            var user;
+
+            it('should signup the temporary user', function() {
+                runs(function() {
+                    user = $kinvey
+                        .User
+                        .signup({
+                            username: 'groupTestUsername',
+                            password: 'testPassword',
+                            firstName: 'Test',
+                            lastName: 'User'
+                        });
+                });
+                waitsFor(function() {
+                    return user.$resolved;
+                });
+            });
+
+            it('should create an alias', function() {
+                $kinvey.alias('classname', 'TestObject');
+            });
+
+            it('should create some test objects', function() {
+                var object;
+                runs(function() {
+                    object = $kinvey.TestObject.create({description: 'giraffe', amount: 3});
+                });
+                waitsFor(function() {
+                    return object.$resolved;
+                });
+                runs(function() {
+                    object = $kinvey.TestObject.create({description: 'giraffe', amount: 5});
+                });
+                waitsFor(function() {
+                    return object.$resolved;
+                });
+                runs(function() {
+                    object = $kinvey.TestObject.create({description: 'marmot', amount: 1});
+                });
+                waitsFor(function() {
+                    return object.$resolved;
+                });
+                runs(function() {
+                    object = $kinvey.TestObject.create({description: 'marmot', amount: 3});
+                });
+                waitsFor(function() {
+                    return object.$resolved;
+                });
+            });
+
+            it('should group the test objects', function() {
+                var result;
+                runs(function() {
+                    result = $kinvey.TestObject.group({
+                        key: {
+                            description: true
+                        },
+                        initial: {
+                            count: 0
+                        },
+                        reduce: function(doc, out) {
+                            out.count++;
+                        },
+                        condition: {
+                            amount: {
+                                $gte: 3
+                            }
+                        }
+                    });
+                });
+                waitsFor(function() {
+                    return result.$resolved;
+                });
+                runs(function() {
+                    expect(result[0].description).toBe('giraffe');
+                    expect(result[0].count).toBe(2);
+                    expect(result[1].description).toBe('marmot');
+                    expect(result[1].count).toBe(1);
+                });
+            });
+
+            it('should delete the test objects', function() {
+                var results;
+                runs(function() {
+                    results = $kinvey.Object('classname').delete({query: {}});
+                })
+                waitsFor(function() {
+                    return results.$resolved;
+                });
+                runs(function() {
+                    expect(results.count).toBe(4);
                 });
             });
 

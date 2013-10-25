@@ -391,5 +391,80 @@ describe('$kinvey', function() {
             });
 
         });
+
+        describe('group', function() {
+
+            it('should be defined', function() {
+                expect($kinvey.Object('classname').group).toBeDefined();
+            });
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/appdata/appkey/classname/_group')
+                    .respond([{
+                        _id: '_id',
+                        description: 'giraffe',
+                        count: 1
+                    }]);
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
+                $kinvey.User.login({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
+                $httpBackend.flush();
+            });
+
+            afterEach(function() {
+                $httpBackend.verifyNoOutstandingExpectation();
+                $httpBackend.verifyNoOutstandingRequest();
+            });
+
+            it('should make an authorized POST request to ../appdata/appkey/classname/_group', function() {
+                $httpBackend.expectPOST('https://baas.kinvey.com/appdata/appkey/classname/_group', {
+                    key: {
+                        description: true
+                    },
+                    initial: {
+                        count: 0
+                    },
+                    reduce: 'function(doc,out){out.count++;}',
+                    condition: {
+                        age: {
+                            $gt: 31
+                        }
+                    }
+                }, {
+                    "X-Kinvey-API-Version":3,
+                    "Authorization":"Kinvey authtoken",
+                    "Accept":"application/json, text/plain, */*",
+                    "Content-Type":"application/json;charset=utf-8"
+                });
+                $kinvey.Object('classname').group({
+                    key: {
+                        description: true
+                    },
+                    initial: {
+                        count: 0
+                    },
+                    reduce: function(doc,out){
+                        out.count++;
+                    },
+                    condition: {
+                        age: {
+                            $gt: 31
+                        }
+                    }
+                });
+                $httpBackend.flush();
+            });
+        });
     });
 });

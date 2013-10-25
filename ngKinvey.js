@@ -27,6 +27,53 @@
 
             var appKey;
 
+            var mongoOperators = [
+                "$gt", "$gte", "$in", "$lt", "$lte", "$ne", "$nin", // comparison
+                "$or", "$and", "$not", "$nor", // logical
+                "$exists", "$type", // element
+                "$mod", "$regex", "$where", //evaluation
+                "$geoWithin", "$geoIntersects", "$near", "$nearSphere", //geospatial
+                "$all", "$elemMatch", "$size", // array
+                "$", "$elemMatch", "$slice" // projection
+            ];
+
+            function isWindow(obj) {
+                return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+            }
+
+            function isScope(obj) {
+                return obj && obj.$evalAsync && obj.$watch;
+            }
+
+            function toJsonReplacer(key, value) {
+                var val = value;
+
+                if (typeof key === 'string' && key.charAt(0) === '$') {
+                    var isMongo = false;
+                    angular.forEach(mongoOperators, function(op) {
+                        if(op == key) {
+                            isMongo = true;
+                        }
+                    });
+                    if(!isMongo) {
+                        val = undefined;
+                    }
+                } else if (isWindow(value)) {
+                    val = '$WINDOW';
+                } else if (value &&  document === value) {
+                    val = '$DOCUMENT';
+                } else if (isScope(value)) {
+                    val = '$SCOPE';
+                }
+
+                return val;
+            }
+
+            function toJson(obj, pretty) {
+                if (typeof obj === 'undefined') return undefined;
+                return JSON.stringify(obj, toJsonReplacer, pretty ? '  ' : null);
+            }
+
             return {
 
                 init: function(options) {
@@ -35,6 +82,7 @@
                     }
                     appKey = options.appKey;
                     headers.user.Authorization = headers.basic.Authorization = 'Basic '+$base64.encode(options.appKey+':'+options.appSecret);
+                    angular.toJson = toJson; // this is a hacky solution to avoiding exluding mongo operators from serialization, hopefully angular will fix this in the future
                 },
 
                 $get: ['$resource', '$http', '$q', function($resource, $http, $q) {
@@ -207,9 +255,20 @@
                             query: {
                                 method: 'GET',
                                 headers: headers.user,
-                                isArray:true,
+                                isArray: true,
                                 params: {
                                     _id: ''
+                                }
+                            },
+                            group: {
+                                method: 'POST',
+                                headers: headers.user,
+                                isArray: true,
+                                params: {
+                                    _id: '_group'
+                                },
+                                transformRequest: function(data) {
+                                    return angular.toJson(data);
                                 }
                             }
                         }));
@@ -226,6 +285,15 @@
                                 return origMethod(a1, a2, a3, a4);
                             };
                         });
+                        var origGroup = resourceDef.group;
+                        resourceDef.group = function(a1, a2, a3, a4) {
+                            if(a1.reduce) {
+                                a1.reduce = a1.reduce.toString();
+                                a1.reduce = a1.reduce.replace(/\n/g,'');
+                                a1.reduce = a1.reduce.replace(/\s/g,'');
+                            }
+                            return origGroup(a1);
+                        };
                         return resourceDef;
                     }
 
