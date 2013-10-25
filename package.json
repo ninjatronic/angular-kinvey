@@ -18,6 +18,7 @@
         "grunt": "latest",
         "bower": "latest",
         "grunt-cli": "latest",
+        "phantom": "latest",
         "phantomjs": "latest",
         "grunt-contrib-jshint": "latest",
         "grunt-contrib-watch": "latest",
