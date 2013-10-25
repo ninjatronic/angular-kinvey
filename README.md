@@ -8,7 +8,9 @@ This API allows an AngularJS app to interact with its backend on Kinvey programa
 
 ## Dependencies
 
-* [AngularJS 1.2.0-rc.3 or later](https://github.com/angular/angular.js/releases/tag/v1.2.0-rc.3)
+* [AngularJS 1.2.0-rc.3 or later](https://github.com/angular/bower-angular)
+* [ngResource 1.2.0-rc.3 or later](https://github.com/angular/bower-angular-resource)
+* [ngCookies 1.2.0-rc.3 or later](https://github.com/angular/bower-angular-cookies)
 * [ngBase64](https://github.com/ninjatronic/ngBase64)
 
 ## Getting Started

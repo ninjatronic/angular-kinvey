@@ -2,7 +2,7 @@
     'use strict';
 
     angular
-        .module('ngKinvey', ['ngResource', 'ngBase64'])
+        .module('ngKinvey', ['ngResource', 'ngCookies', 'ngBase64'])
 
         .provider('$kinvey', ['$base64', function($base64) {
 
@@ -85,7 +85,12 @@
                     angular.toJson = toJson; // this is a hacky solution to avoiding exluding mongo operators from serialization, hopefully angular will fix this in the future
                 },
 
-                $get: ['$resource', '$http', '$q', function($resource, $http, $q) {
+                $get: ['$cookieStore', '$resource', '$http', '$q', function($cookieStore, $resource, $http, $q) {
+                    var oldToken = $cookieStore.get(appKey+':authToken');
+                    if(oldToken) {
+                        headers.user.Authorization = oldToken;
+                    }
+
                     function handshake() {
                         var deferred = $q.defer();
                         $http.get(baseUrl + appdata + appKey, {
@@ -111,6 +116,7 @@
                                 data = angular.fromJson(data);
                                 if(!data.error) {
                                     headers.user.Authorization = 'Kinvey '+data._kmd.authtoken;
+                                    $cookieStore.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
                                 }
                                 return new User(data);
                             },
@@ -130,6 +136,7 @@
                             },
                             transformResponse: function() {
                                 headers.user.Authorization = headers.basic.Authorization;
+                                $cookieStore.remove(appKey+':authToken');
                             },
                             headers: headers.user
                         },
@@ -141,6 +148,7 @@
                                 data = angular.fromJson(data);
                                 if(!data.error) {
                                     headers.user.Authorization = 'Kinvey '+data._kmd.authtoken;
+                                    $cookieStore.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
                                 }
                                 return new User(data);
                             }
