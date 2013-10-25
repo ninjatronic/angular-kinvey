@@ -4,7 +4,7 @@ describe('$kinvey', function() {
 
     it('should bootstrap the module', function() {
         var $injector;
-        var $module = angular.module('test', ['ngKinvey']);
+        var $module = angular.module('test', ['kinvey']);
 
         $module.config(['$kinveyProvider', function($kinveyProvider) {
             $kinveyProvider.init({

@@ -19,7 +19,7 @@ Make sure your app depends on the `ngKinvey` module and configure the `$kinveyPr
 block...
 
 ```javascript
-angular.module('myApp', ['ngKinvey']).config(['$kinveyProvider', function($kinveyProvider){
+angular.module('myApp', ['kinvey']).config(['$kinveyProvider', function($kinveyProvider){
     $kinveyProvider.init({
         appKey: 'your app key',
         appSecret: 'your app secret'
@@ -182,4 +182,4 @@ Issues are welcome. Please consider writing unit and scenario tests to illustrat
 ### Pull Requests
 
 Pull requests are welcome. Please include unit and scenario tests which illustrate the feature you are adding, or the
-issue you are solving. Please also include a minified and tested version of the ngKinvey.js file (using `grunt build`).
+issue you are solving. Please also include a minified and tested version of the kinvey.js file (using `grunt build`).

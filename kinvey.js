@@ -2,7 +2,7 @@
     'use strict';
 
     angular
-        .module('ngKinvey', ['ngResource', 'ngCookies', 'ngBase64'])
+        .module('kinvey', ['ngResource', 'ngCookies', 'ngBase64'])
 
         .provider('$kinvey', ['$base64', function($base64) {
 

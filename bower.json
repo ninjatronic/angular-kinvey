@@ -1,5 +1,5 @@
 {
-    "name": "ngKinvey",
+    "name": "kinvey",
     "version": "v0.0.1",
     "ignore": [
         "test/",
@@ -8,8 +8,8 @@
         ".travis.yml"
     ],
     "main": [
-        "ngKinvey.js",
-        "ngKinvey.min.js"
+        "kinvey.js",
+        "kinvey.min.js"
     ],
     "dependencies": {
         "angular": ">= v1.2.0-rc.3",

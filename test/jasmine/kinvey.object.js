@@ -6,7 +6,7 @@ describe('$kinvey', function() {
         angular.module('test',[]).config(function($kinveyProvider) {
             $kinveyProvider.init({appKey: 'appkey', appSecret: 'appsecret'});
         });
-        module('ngKinvey', 'test');
+        module('kinvey', 'test');
         inject(function($injector) {
             $httpBackend = $injector.get('$httpBackend');
             $kinvey = $injector.get('$kinvey');

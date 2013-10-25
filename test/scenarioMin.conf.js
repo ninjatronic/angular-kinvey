@@ -10,7 +10,7 @@ module.exports = function(config) {
             'bower_components/angular-resource/angular-resource.js',
             'bower_components/ngBase64/ngBase64.js',
 
-            'ngKinvey.min.js',
+            'kinvey.min.js',
 
             'test/scenario/**/*.js'
         ]

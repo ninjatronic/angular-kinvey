@@ -5,7 +5,7 @@ describe('$kinveyProvider', function() {
         angular.module('test',[]).config(function($kinveyProvider) {
             kinveyProvider = $kinveyProvider;
         });
-        module('ngKinvey', 'test');
+        module('kinvey', 'test');
         inject(function() {});
     });
 
