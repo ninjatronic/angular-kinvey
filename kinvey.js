@@ -177,13 +177,6 @@
                                 _id: ''
                             }
                         },
-                        remove: {
-                            method:'DELETE',
-                            params: {
-                                hard: true
-                            },
-                            headers: headers.user
-                        },
                         delete: {
                             method:'DELETE',
                             params: {
@@ -194,28 +187,37 @@
                         suspend: {
                             method:'DELETE',
                             headers: headers.user
+                        },
+                        verifyEmail: {
+                            method: 'POST',
+                            headers: headers.basic,
+                            url: baseUrl+rpc+appKey+'/:username:email/user-email-verification-initiate',
+                            params: {
+                                username: '@username',
+                                email: '@email'
+                            },
+                            transformRequest: function() {
+                                return '';
+                            }
+                        },
+                        resetPassword: {
+                            method: 'POST',
+                            headers: headers.basic,
+                            url: baseUrl+rpc+appKey+'/:username:email/user-password-reset-initiate',
+                            params: {
+                                username: '@username',
+                                email: '@email'
+                            },
+                            transformRequest: function() {
+                                return '';
+                            }
+                        },
+                        checkUsernameExists: {
+                            method: 'POST',
+                            headers: headers.basic,
+                            url: baseUrl+rpc+appKey+'/check-username-exists'
                         }
                     }));
-
-                    expand(User, 'verifyEmail', function(username) {
-                        return $http.post(baseUrl+rpc+appKey+'/'+username+'/user-email-verification-initiate', {}, {headers: headers.basic});
-                    });
-                    expand(User, 'resetPassword', function(username) {
-                        return $http.post(baseUrl+rpc+appKey+'/'+username+'/user-password-reset-initiate', {}, {headers: headers.basic});
-                    });
-                    expand(User, 'checkUsernameExists', function(username) {
-                        var deferred = $q.defer();
-                        $http.post(baseUrl+rpc+appKey+'/check-username-exists', {
-                            username: username
-                        }, {
-                            headers: headers.basic
-                        }).then(function(response) {
-                                deferred.resolve(response.data.usernameExists);
-                            }, function() {
-                                deferred.reject();
-                            });
-                        return deferred.promise;
-                    });
 
                     var Group = $resource(baseUrl + groupdata + appKey + '/:_id', {_id: '@_id'}, {
                         get: {
@@ -294,7 +296,7 @@
                             };
                         });
                         var origGroup = resourceDef.group;
-                        resourceDef.group = function(a1, a2, a3, a4) {
+                        resourceDef.group = function(a1) {
                             if(a1.reduce) {
                                 a1.reduce = a1.reduce.toString();
                                 a1.reduce = a1.reduce.replace(/\n/g,'');
@@ -302,11 +304,6 @@
                             }
                             return origGroup(a1);
                         };
-                        return resourceDef;
-                    }
-
-                    function expand(resourceDef, expansionKey, expansion) {
-                        resourceDef[expansionKey] = expansion;
                         return resourceDef;
                     }
 

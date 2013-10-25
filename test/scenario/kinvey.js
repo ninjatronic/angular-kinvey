@@ -48,15 +48,13 @@ describe('$kinvey', function() {
         it('should check that the username is available', function() {
             var result;
             runs(function() {
-                $kinvey.User.checkUsernameExists('badger').then(function(response) {
-                    result = response;
-                });
+                result = $kinvey.User.checkUsernameExists({username: 'badger'});
             });
             waitsFor(function() {
-                return result != undefined;
+                return result.$resolved;
             });
             runs(function() {
-                expect(result).toBe(false);
+                expect(result.usernameExists).toBe(false);
             });
         });
 
@@ -84,15 +82,13 @@ describe('$kinvey', function() {
         it('should check that the username is now unavailable', function() {
             var result;
             runs(function() {
-                $kinvey.User.checkUsernameExists('badger').then(function(response) {
-                    result = response;
-                });
+                result = $kinvey.User.checkUsernameExists({username: 'badger'});
             });
             waitsFor(function() {
-                return result != undefined;
+                return result.$resolved;
             });
             runs(function() {
-                expect(result).toBe(true);
+                expect(result.usernameExists).toBe(true);
             });
         });
 
@@ -232,15 +228,10 @@ describe('$kinvey', function() {
                 return user.$resolved;
             });
             runs(function() {
-                $kinvey.User.verifyEmail(user.username).then(function(data) {
-                    result = data.status;
-                });
+                result = $kinvey.User.verifyEmail({username: user.username});
             });
             waitsFor(function() {
-                return result;
-            });
-            runs(function() {
-                expect(result).toBe(204);
+                return result.$resolved;
             });
         });
 
@@ -254,15 +245,10 @@ describe('$kinvey', function() {
                 return user.$resolved;
             });
             runs(function() {
-                $kinvey.User.resetPassword(user.username).then(function(data) {
-                    result = data.status;
-                });
+                result = $kinvey.User.resetPassword({username: user.username});
             });
             waitsFor(function() {
-                return result;
-            });
-            runs(function() {
-                expect(result).toBe(204);
+                return result.$resolved;
             });
         });
 

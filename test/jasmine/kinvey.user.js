@@ -21,22 +21,16 @@ describe('$kinvey', function() {
 
         describe('login', function() {
 
-            var request = {
-                'username':'badger',
-                'password':'giraffe'
-            };
-            var expected = {
-                username: 'badger',
-                _id: 'goat',
-                _kmd: {
-                    authtoken: 'authtoken'
-                }
-            };
-
             beforeEach(function() {
                 $httpBackend
                     .when('POST', 'https://baas.kinvey.com/user/appkey/login')
-                    .respond(expected);
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
             });
 
             afterEach(function() {
@@ -49,41 +43,54 @@ describe('$kinvey', function() {
             });
 
             it('should make a POST request to ../login', function() {
-                $httpBackend.expectPOST('https://baas.kinvey.com/user/appkey/login', request, {
+                $httpBackend.expectPOST('https://baas.kinvey.com/user/appkey/login', {
+                    'username':'badger',
+                    'password':'giraffe'
+                }, {
                     'Accept':'application/json, text/plain, */*',
                     'Content-Type':'application/json;charset=utf-8',
                     'X-Kinvey-API-Version':3,
                     'Authorization':'Basic YXBwa2V5OmFwcHNlY3JldA=='
                 });
-                $kinvey.User.login(request);
+                $kinvey.User.login({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
                 $httpBackend.flush();
             });
 
             it('should return an appropriate resource object', function() {
-                var result = $kinvey.User.login(request);
+                var result = $kinvey.User.login({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
                 $httpBackend.flush();
-                expect(result._id).toBe(expected._id);
+                expect(result._id).toBe('goat');
             });
 
         });
 
         describe('current', function() {
 
-            var expected = {
-                username: 'badger',
-                _id: 'goat',
-                _kmd: {
-                    authtoken: 'authtoken'
-                }
-            };
-
             beforeEach(function() {
                 $httpBackend
                     .when('GET', 'https://baas.kinvey.com/user/appkey/_me')
-                    .respond(expected);
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
                 $httpBackend
                     .when('POST', 'https://baas.kinvey.com/user/appkey/login')
-                    .respond(expected);
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
                 $kinvey.User.login({
                     'username':'badger',
                     'password':'giraffe'
@@ -112,20 +119,12 @@ describe('$kinvey', function() {
             it('should return an appropriate resource object', function() {
                 var result = $kinvey.User.current();
                 $httpBackend.flush();
-                expect(result._id).toBe(expected._id);
+                expect(result._id).toBe('goat');
             });
 
         });
 
         describe('logout', function() {
-
-            var expected = {
-                username: 'badger',
-                _id: 'goat',
-                _kmd: {
-                    authtoken: 'authtoken'
-                }
-            };
 
             beforeEach(function() {
                 $httpBackend
@@ -133,7 +132,13 @@ describe('$kinvey', function() {
                     .respond(204);
                 $httpBackend
                     .when('POST', 'https://baas.kinvey.com/user/appkey/login')
-                    .respond(expected);
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
                 $kinvey.User.login({
                     'username':'badger',
                     'password':'giraffe'
@@ -164,22 +169,16 @@ describe('$kinvey', function() {
 
         describe('signup', function() {
 
-            var request = {
-                'username':'badger',
-                'password':'giraffe'
-            };
-            var expected = {
-                username: 'badger',
-                _id: 'goat',
-                _kmd: {
-                    authtoken: 'authtoken'
-                }
-            };
-
             beforeEach(function() {
                 $httpBackend
                     .when('POST', 'https://baas.kinvey.com/user/appkey')
-                    .respond(expected);
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
             });
 
             afterEach(function() {
@@ -192,41 +191,54 @@ describe('$kinvey', function() {
             });
 
             it('should make a POST request to ../', function() {
-                $httpBackend.expectPOST('https://baas.kinvey.com/user/appkey', request, {
+                $httpBackend.expectPOST('https://baas.kinvey.com/user/appkey', {
+                    'username':'badger',
+                    'password':'giraffe'
+                }, {
                     'Accept':'application/json, text/plain, */*',
                     'Content-Type':'application/json;charset=utf-8',
                     'X-Kinvey-API-Version':3,
                     'Authorization':'Basic YXBwa2V5OmFwcHNlY3JldA=='
                 });
-                $kinvey.User.signup(request);
+                $kinvey.User.signup({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
                 $httpBackend.flush();
             });
 
             it('should return an appropriate resource object', function() {
-                var result = $kinvey.User.signup(request);
+                var result = $kinvey.User.signup({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
                 $httpBackend.flush();
-                expect(result._id).toBe(expected._id);
+                expect(result._id).toBe('goat');
             });
 
         });
 
         describe('get', function() {
 
-            var expected = {
-                username: 'badger',
-                _id: 'goat',
-                _kmd: {
-                    authtoken: 'authtoken'
-                }
-            };
-
             beforeEach(function() {
                 $httpBackend
                     .when('GET', 'https://baas.kinvey.com/user/appkey/userId')
-                    .respond(expected);
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
                 $httpBackend
                     .when('POST', 'https://baas.kinvey.com/user/appkey/login')
-                    .respond(expected);
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
                 $kinvey.User.login({
                     'username':'badger',
                     'password':'giraffe'
@@ -256,7 +268,7 @@ describe('$kinvey', function() {
             it('should return an appropriate resource object', function() {
                 var result = $kinvey.User.get({_id: 'userId'});
                 $httpBackend.flush();
-                expect(result._id).toBe(expected._id);
+                expect(result._id).toBe('goat');
             });
 
         });
@@ -361,51 +373,6 @@ describe('$kinvey', function() {
 
         });
 
-        describe('remove', function() {
-
-            var expected = {
-                username: 'badger',
-                _id: 'goat',
-                _kmd: {
-                    authtoken: 'authtoken'
-                }
-            };
-
-            beforeEach(function() {
-                $httpBackend
-                    .when('DELETE', 'https://baas.kinvey.com/user/appkey/userId?hard=true')
-                    .respond(204);
-                $httpBackend
-                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
-                    .respond(expected);
-                $kinvey.User.login({
-                    'username':'badger',
-                    'password':'giraffe'
-                });
-                $httpBackend.flush();
-            });
-
-            afterEach(function() {
-                $httpBackend.verifyNoOutstandingExpectation();
-                $httpBackend.verifyNoOutstandingRequest();
-            });
-
-            it('should be defined', function() {
-                expect($kinvey.User.remove).toBeDefined();
-            });
-
-            it('should make a DELETE request to ../:id?hard=true', function() {
-                $httpBackend.expectDELETE('https://baas.kinvey.com/user/appkey/userId?hard=true', {
-                    'Accept':'application/json, text/plain, */*',
-                    'X-Kinvey-API-Version':3,
-                    'Authorization':'Kinvey authtoken'
-                });
-                $kinvey.User.remove({_id: 'userId'});
-                $httpBackend.flush();
-            });
-
-        });
-
         describe('suspend', function() {
 
             beforeEach(function() {
@@ -451,30 +418,28 @@ describe('$kinvey', function() {
 
         describe('save', function() {
 
-            var loggedIn = {
-                username: 'badger',
-                _id: 'userId',
-                _kmd: {
-                    authtoken: 'authtoken'
-                }
-            };
-            var expected = {
-                username: 'badger',
-                firstName: 'giraffe',
-                _id: 'userId',
-                _kmd: {
-                    authtoken: 'authtoken'
-                }
-            };
             var user;
 
             beforeEach(function() {
                 $httpBackend
                     .when('PUT', 'https://baas.kinvey.com/user/appkey/userId')
-                    .respond(expected);
+                    .respond({
+                        username: 'badger',
+                        firstName: 'giraffe',
+                        _id: 'userId',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
                 $httpBackend
                     .when('POST', 'https://baas.kinvey.com/user/appkey/login')
-                    .respond(loggedIn);
+                    .respond({
+                        username: 'badger',
+                        _id: 'userId',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
                 user = $kinvey.User.login({
                     'username':'badger',
                     'password':'giraffe'
@@ -492,7 +457,13 @@ describe('$kinvey', function() {
             });
 
             it('should make a PUT request to ../id', function() {
-                $httpBackend.expectPUT('https://baas.kinvey.com/user/appkey/userId', loggedIn,  {
+                $httpBackend.expectPUT('https://baas.kinvey.com/user/appkey/userId', {
+                    username: 'badger',
+                    _id: 'userId',
+                    _kmd: {
+                        authtoken: 'authtoken'
+                    }
+                },  {
                     'Accept':'application/json, text/plain, */*',
                     'Content-Type':'application/json;charset=utf-8',
                     'X-Kinvey-API-Version':3,
@@ -575,7 +546,10 @@ describe('$kinvey', function() {
 
             beforeEach(function() {
                 $httpBackend
-                    .when('POST', 'https://baas.kinvey.com/rpc/appkey/username/user-email-verification-initiate')
+                    .when('POST', 'https://baas.kinvey.com/rpc/appkey/username/user-email-verification-initiate?')
+                    .respond(204);
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/rpc/appkey/email/user-email-verification-initiate?')
                     .respond(204);
                 $httpBackend
                     .when('POST', 'https://baas.kinvey.com/user/appkey/login')
@@ -603,13 +577,24 @@ describe('$kinvey', function() {
             });
 
             it('should make a POST request to /rpc/appkey/username/user-email-verification-initiate', function() {
-                $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/username/user-email-verification-initiate', undefined, {
+                $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/username/user-email-verification-initiate?', undefined, {
                     "X-Kinvey-API-Version":3,
                     "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
                     "Accept":"application/json, text/plain, */*",
                     "Content-Type":"application/json;charset=utf-8"
                 });
-                $kinvey.User.verifyEmail('username');
+                $kinvey.User.verifyEmail({username: 'username'});
+                $httpBackend.flush();
+            });
+
+            it('should make a POST request to /rpc/appkey/email/user-email-verification-initiate', function() {
+                $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/email/user-email-verification-initiate?', undefined, {
+                    "X-Kinvey-API-Version":3,
+                    "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
+                    "Accept":"application/json, text/plain, */*",
+                    "Content-Type":"application/json;charset=utf-8"
+                });
+                $kinvey.User.verifyEmail({email: 'email'});
                 $httpBackend.flush();
             });
 
@@ -619,7 +604,7 @@ describe('$kinvey', function() {
 
             beforeEach(function() {
                 $httpBackend
-                    .when('POST', 'https://baas.kinvey.com/rpc/appkey/username/user-password-reset-initiate')
+                    .when('POST', 'https://baas.kinvey.com/rpc/appkey/username/user-password-reset-initiate?')
                     .respond(204);
                 $httpBackend
                     .when('POST', 'https://baas.kinvey.com/user/appkey/login')
@@ -647,13 +632,13 @@ describe('$kinvey', function() {
             });
 
             it('should make a POST request to /rpc/appkey/username/user-password-reset-initiate', function() {
-                $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/username/user-password-reset-initiate', undefined, {
+                $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/username/user-password-reset-initiate?', undefined, {
                     "X-Kinvey-API-Version":3,
                     "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
                     "Accept":"application/json, text/plain, */*",
                     "Content-Type":"application/json;charset=utf-8"
                 });
-                $kinvey.User.resetPassword('username');
+                $kinvey.User.resetPassword({username: 'username'});
                 $httpBackend.flush();
             });
 
@@ -663,7 +648,7 @@ describe('$kinvey', function() {
 
             beforeEach(function() {
                 $httpBackend
-                    .when('POST', 'https://baas.kinvey.com/rpc/appkey/check-username-exists')
+                    .when('POST', 'https://baas.kinvey.com/rpc/appkey/check-username-exists?')
                     .respond({
                         usernameExists: false
                     });
@@ -693,7 +678,7 @@ describe('$kinvey', function() {
             });
 
             it('should make a POST request to /rpc/appkey/check-username-exists', function() {
-                $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/check-username-exists', {
+                $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/check-username-exists?', {
                     username: 'username'
                 }, {
                     "X-Kinvey-API-Version":3,
@@ -701,17 +686,14 @@ describe('$kinvey', function() {
                     "Accept":"application/json, text/plain, */*",
                     "Content-Type":"application/json;charset=utf-8"
                 });
-                $kinvey.User.checkUsernameExists('username');
+                $kinvey.User.checkUsernameExists({username: 'username'});
                 $httpBackend.flush();
             });
 
             it('should resolve the response appropriately', function() {
-                var response;
-                $kinvey.User.checkUsernameExists('username').then(function(result) {
-                    response = result;
-                });
+                var response = $kinvey.User.checkUsernameExists('username');
                 $httpBackend.flush();
-                expect(response).toBe(false);
+                expect(response.usernameExists).toBe(false);
             });
 
         });
