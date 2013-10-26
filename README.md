@@ -3,8 +3,8 @@
 [![Build Status](https://travis-ci.org/ninjatronic/ngKinvey.png)](https://travis-ci.org/ninjatronic/ngKinvey)
 
 **ngKinvey** aims to provide easy-to-consume support for BaaS services provided by [Kinvey](http://kinvey.com/).
-This API allows an AngularJS app to interact with its backend on Kinvey programatically using the `$resource` and
-`$q` paradigms provided by Angular.
+This API allows an AngularJS app to interact with its backend on Kinvey programatically using the `$resource` 
+paradigm provided by Angular.
 
 ## Dependencies
 
