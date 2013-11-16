@@ -25,7 +25,17 @@ This documentation mirrors the structure of the [Kinvey DevCenter REST API guide
 and large parts of this documentation have been copied verbatim and then altered.
 
 
-## Development
+## Contribution
+
+Contributions are welcome on this project.
+
+* If you think there is something missing or have discovered a bug please [open an issue](https://github.com/ninjatronic/ngKinvey/issues/new)
+* If you want to submit code to the project, please [fork the repo](https://github.com/ninjatronic/ngKinvey/fork) and submit a pull request
+
+You can check the [project milestones](https://github.com/ninjatronic/ngKinvey/issues/milestones?with_issues=yes) for an
+idea of the development roadmap.
+
+### Tooling for Development
 
 This project uses Grunt for tooling. The toolbelt dependencies are managed by NPM and the production  dependencies are
 managed by Bower. To develop, fork this repo and clone the code, then...
