@@ -12,7 +12,8 @@
             var appdata = 'appdata/';
             var userdata = 'user/';
             var groupdata = 'group/';
-            var rpc = 'rpc/';
+            var rpcdata = 'rpc/';
+            var customdata = 'custom/';
 
             var headers = {
                 user: {
@@ -191,7 +192,7 @@
                         verifyEmail: {
                             method: 'POST',
                             headers: headers.basic,
-                            url: baseUrl+rpc+appKey+'/:username:email/user-email-verification-initiate',
+                            url: baseUrl+rpcdata+appKey+'/:username:email/user-email-verification-initiate',
                             params: {
                                 username: '@username',
                                 email: '@email'
@@ -203,7 +204,7 @@
                         resetPassword: {
                             method: 'POST',
                             headers: headers.basic,
-                            url: baseUrl+rpc+appKey+'/:username:email/user-password-reset-initiate',
+                            url: baseUrl+rpcdata+appKey+'/:username:email/user-password-reset-initiate',
                             params: {
                                 username: '@username',
                                 email: '@email'
@@ -215,7 +216,7 @@
                         checkUsernameExists: {
                             method: 'POST',
                             headers: headers.basic,
-                            url: baseUrl+rpc+appKey+'/check-username-exists'
+                            url: baseUrl+rpcdata+appKey+'/check-username-exists'
                         }
                     }));
 
@@ -323,12 +324,28 @@
                         retVal[aliasname] = Object(classname);
                     }
 
+                    function rpc(endpoint, data) {
+                        var deferred = $q.defer();
+                        $http.post(baseUrl + rpcdata + appKey + '/' + customdata + endpoint, data, {
+                            headers: headers.user
+                        }).then(
+                            function(response) {
+                                deferred.resolve(response.data);
+                            },
+                            function(error) {
+                                deferred.reject(error);
+                            }
+                        );
+                        return deferred.promise;
+                    }
+
                     var retVal = {
                         handshake: handshake,
                         User: User,
                         Group: Group,
                         Object: Object,
-                        alias: alias
+                        alias: alias,
+                        rpc: rpc
                     };
 
                     return retVal;

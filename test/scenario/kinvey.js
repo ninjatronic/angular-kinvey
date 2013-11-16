@@ -36,14 +36,14 @@ describe('$kinvey', function() {
                 return result;
             });
             runs(function() {
-                expect(result.version).toBe('3.2.1');
+                expect(result.version).toBe('3.2.4');
                 expect(result.kinvey).toBe('hello angular-kinvey');
             });
         });
 
     });
 
-    describe('$kinvey.user', function() {
+    describe('$kinvey.User', function() {
 
         it('should check that the username is available', function() {
             var result;
@@ -780,6 +780,54 @@ describe('$kinvey', function() {
                 });
             });
 
+        });
+
+    });
+
+    describe('$kinvey.rpc', function() {
+        var user;
+
+        it('should signup the temporary user', function() {
+            runs(function() {
+                user = $kinvey
+                    .User
+                    .signup({
+                        username: 'rpcTestUsername',
+                        password: 'testPassword',
+                        firstName: 'Test',
+                        lastName: 'User'
+                    });
+            });
+            waitsFor(function() {
+                return user.$resolved;
+            });
+        });
+
+        it('should invoke the endpoint and get the expected result', function() {
+            var result;
+            runs(function() {
+                $kinvey
+                    .rpc('test', {test: 'BADGER'})
+                    .then(function(response) {
+                        result = response;
+                    });
+            });
+            waitsFor(function() {
+                return result;
+            });
+            runs(function() {
+                expect(result.status).toBe('OK');
+            });
+        });
+
+        it('should delete the temporary user', function() {
+            var response;
+            runs(function() {
+                response = $kinvey.User.delete({_id: user._id});
+            });
+            waitsFor(function() {
+                return response.$resolved;
+            });
         });
 
     });
