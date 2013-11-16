@@ -831,4 +831,55 @@ describe('$kinvey', function() {
         });
 
     });
+
+    describe('$kinvey.file', function() {
+        var user;
+
+        it('should signup the temporary user', function() {
+            runs(function() {
+                user = $kinvey
+                    .User
+                    .signup({
+                        username: 'fileTestUsername',
+                        password: 'testPassword',
+                        firstName: 'Test',
+                        lastName: 'User'
+                    });
+            });
+            waitsFor(function() {
+                return user.$resolved;
+            });
+        });
+
+        it('should upload a file', function() {
+            var result;
+            runs(function() {
+                $kinvey.file
+                    .upload('this is the file contents', 'text/plain', {
+                        size: 25,
+                        meta: 'this is metadata'
+                    }, 'myFile.txt', undefined)
+                    .then(function(response) {
+                        result = response;
+                    });
+            });
+            waitsFor(function() {
+                return result;
+            });
+            runs(function() {
+                expect(result).toBeDefined();
+            });
+        });
+
+        it('should delete the temporary user', function() {
+            var response;
+            runs(function() {
+                response = $kinvey.User.delete({_id: user._id});
+            });
+            waitsFor(function() {
+                return response.$resolved;
+            });
+        });
+
+    });
 });

@@ -20,6 +20,7 @@ paradigm provided by Angular.
 * [Users](https://github.com/ninjatronic/ngKinvey/wiki/Users)
 * [Location] (https://github.com/ninjatronic/ngKinvey/wiki/Location)
 * [Business Logic] (https://github.com/ninjatronic/ngKinvey/wiki/Business-Logic)
+* [Files] (https://github.com/ninjatronic/ngKinvey/wiki/Files)
 
 This documentation mirrors the structure of the [Kinvey DevCenter REST API guide](http://devcenter.kinvey.com/rest/guides/), 
 and large parts of this documentation have been copied verbatim and then altered.

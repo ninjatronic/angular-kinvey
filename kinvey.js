@@ -14,6 +14,7 @@
             var groupdata = 'group/';
             var rpcdata = 'rpc/';
             var customdata = 'custom/';
+            var blobdata = 'blob/';
 
             var headers = {
                 user: {
@@ -95,7 +96,7 @@
                     function handshake() {
                         var deferred = $q.defer();
                         $http.get(baseUrl + appdata + appKey, {
-                            headers: headers.user
+                            headers: headers.basic
                         }).then(
                                 function(response) {
                                     deferred.resolve(response.data);
@@ -339,13 +340,50 @@
                         return deferred.promise;
                     }
 
+                    var file = {
+                        upload: function(filedata, mimeType, metadata, filename, fileId) {
+                            var deferred = $q.defer();
+
+                            metadata._filename = filename || metadata._filename;
+
+                            $http({
+                                method: fileId ? 'PUT' : 'POST',
+                                url: baseUrl + blobdata + appKey + (fileId ? '/' + fileId : ''),
+                                headers: angular.extend({
+                                    'X-Kinvey-Content-Type': mimeType
+                                }, headers.user),
+                                data: metadata
+                            }).then(function(response) {
+                                    $http({
+                                        method: 'PUT',
+                                        url: response.data._uploadURL,
+                                        headers: angular.extend({
+                                            'Content-Type': mimeType,
+                                            'Content-Length': filedata.length,
+                                            'Accept': undefined
+                                        }, response.data._requiredHeaders),
+                                        data: filedata
+                                    }).then(function(response) {
+                                            deferred.resolve(response.data || {status: 'COMPLETE'});
+                                        }, function(err) {
+                                            deferred.reject(err.data);
+                                        });
+                                }, function(error) {
+                                    deferred.reject(error.data);
+                                });
+
+                            return deferred.promise;
+                        }
+                    };
+
                     var retVal = {
                         handshake: handshake,
                         User: User,
                         Group: Group,
                         Object: Object,
                         alias: alias,
-                        rpc: rpc
+                        rpc: rpc,
+                        file: file
                     };
 
                     return retVal;
