@@ -326,7 +326,7 @@
 
                             var args = {_id: target._id ? target._id : target};
                             if(ttl) {
-                                args.ttl_in_seconds = ttl
+                                args.ttl_in_seconds = ttl;
                             }
                             var file = File.get(args);
                             file.$promise
@@ -348,7 +348,7 @@
                         resourceDef.upload = fileFunctions.upload;
                         resourceDef.download = fileFunctions.download;
                         return resourceDef;
-                    };
+                    }
 
                     var mongoMethods = ['query', 'delete'];
                     function mongolise(resourceDef) {

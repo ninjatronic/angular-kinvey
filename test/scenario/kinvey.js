@@ -21,7 +21,7 @@ describe('$kinvey', function() {
         $kinvey = $injector.get('$kinvey');
     });
 
-    xdescribe('$kinvey.handshake', function() {
+    describe('$kinvey.handshake', function() {
 
         it('should resolve the handshake without error', function() {
             var result;
@@ -43,7 +43,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.User', function() {
+    describe('$kinvey.User', function() {
 
         it('should check that the username is available', function() {
             var result;
@@ -280,7 +280,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.Group', function() {
+    describe('$kinvey.Group', function() {
 
         var _id = 'testGroup';
         var user;
@@ -387,7 +387,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.Object(\'classname\')', function() {
+    describe('$kinvey.Object(\'classname\')', function() {
 
         describe('simple CRUD', function() {
 
@@ -784,7 +784,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.rpc', function() {
+    describe('$kinvey.rpc', function() {
         var user;
 
         it('should signup the temporary user', function() {
