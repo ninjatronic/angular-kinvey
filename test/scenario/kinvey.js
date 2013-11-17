@@ -868,7 +868,6 @@ describe('$kinvey', function() {
                 return result;
             });
             runs(function() {
-                console.log(result);
                 expect(result).toBeDefined();
                 fileId = result._id;
             });
@@ -925,6 +924,20 @@ describe('$kinvey', function() {
             runs(function() {
                 expect(result).toBe('this is the file contents');
             });
+        });
+
+        it('should delete the file', function() {
+            var result;
+
+            runs(function() {
+                result = $kinvey.File.delete({_id: fileId});
+            });
+            waitsFor(function() {
+                return result.$resolved;
+            });
+            runs(function() {
+                expect(result.count).toBe(1);
+            })
         });
 
         it('should delete the temporary user', function() {

@@ -698,6 +698,32 @@ describe('$kinvey', function() {
 
         });
 
+        describe('delete', function() {
+
+            it('should be defined', function() {
+                expect($kinvey.File.delete).toBeDefined();
+            });
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('DELETE', 'https://baas.kinvey.com/blob/appkey/fileId')
+                    .respond({
+                        count: 1
+                    });
+            });
+
+            it('should make a DELETE request to ../blob/appkey/fileId', function() {
+                $httpBackend.expectDELETE('https://baas.kinvey.com/blob/appkey/fileId', {
+                    "X-Kinvey-API-Version":3,
+                    "Authorization":"Kinvey authtoken",
+                    "Accept":"application/json, text/plain, */*"
+                });
+                $kinvey.File.delete({_id: 'fileId'});
+                $httpBackend.flush();
+            });
+
+        });
+
     });
 
 });

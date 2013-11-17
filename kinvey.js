@@ -385,6 +385,10 @@
                             params: {
                                 _id: ''
                             }
+                        },
+                        delete: {
+                            method:'DELETE',
+                            headers: headers.user
                         }
                     })));
 
