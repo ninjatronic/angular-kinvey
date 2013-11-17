@@ -802,14 +802,10 @@ describe('$kinvey', function() {
         it('should invoke the endpoint and get the expected result', function() {
             var result;
             runs(function() {
-                $kinvey
-                    .rpc('test', {test: 'BADGER'})
-                    .then(function(response) {
-                        result = response;
-                    });
+                result = $kinvey.rpc('test', {test: 'BADGER'});
             });
             waitsFor(function() {
-                return result;
+                return result.$resolved;
             });
             runs(function() {
                 expect(result.status).toBe('OK');

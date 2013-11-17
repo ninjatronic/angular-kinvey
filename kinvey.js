@@ -416,17 +416,23 @@
 
                     function rpc(endpoint, data) {
                         var deferred = $q.defer();
+                        var retVal = {
+                            $resolved: false,
+                            $promise: deferred.promise
+                        };
                         $http.post(baseUrl + rpcdata + appKey + '/' + customdata + endpoint, data, {
                             headers: headers.user
                         }).then(
                             function(response) {
+                                angular.extend(retVal, response.data);
+                                retVal.$resolved = true;
                                 deferred.resolve(response.data);
                             },
                             function(error) {
                                 deferred.reject(error);
                             }
                         );
-                        return deferred.promise;
+                        return retVal;
                     }
 
                     var retVal = {

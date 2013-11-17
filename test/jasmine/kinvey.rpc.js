@@ -59,12 +59,10 @@ describe('$kinvey', function() {
         });
 
         it('should resolve the data', function() {
-            var response;
-            $kinvey.rpc('test', {test: 'BADGER'}).then(function(result) {
-                response = result;
-            });
+            var response = $kinvey.rpc('test', {test: 'BADGER'});
             $httpBackend.flush();
-            expect(response).toBe(expected);
+            expect(response.status).toBe(expected.status);
+            expect(response.$resolved).toBe(true);
         });
     });
 });
