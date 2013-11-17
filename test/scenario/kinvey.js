@@ -26,14 +26,10 @@ describe('$kinvey', function() {
         it('should resolve the handshake without error', function() {
             var result;
             runs(function() {
-                $kinvey
-                    .handshake()
-                    .then(function(response) {
-                        result = response;
-                    });
+                result = $kinvey.handshake();;
             });
             waitsFor(function() {
-                return result;
+                return result.$resolved;
             });
             runs(function() {
                 expect(result.version).toBe('3.2.4');

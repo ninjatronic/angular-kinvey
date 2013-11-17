@@ -42,12 +42,11 @@ describe('$kinvey', function() {
         });
 
         it('should resolve the data', function() {
-            var response;
-            $kinvey.handshake().then(function(result) {
-                response = result;
-            });
+            var response = $kinvey.handshake();
             $httpBackend.flush();
-            expect(response).toBe(expected);
+            expect(response.kinvey).toBe(expected.kinvey);
+            expect(response.version).toBe(expected.version);
+            expect(response.$resolved).toBe(true);
         });
     });
 });
