@@ -21,7 +21,7 @@ describe('$kinvey', function() {
         $kinvey = $injector.get('$kinvey');
     });
 
-    describe('$kinvey.handshake', function() {
+    xdescribe('$kinvey.handshake', function() {
 
         it('should resolve the handshake without error', function() {
             var result;
@@ -43,7 +43,7 @@ describe('$kinvey', function() {
 
     });
 
-    describe('$kinvey.User', function() {
+    xdescribe('$kinvey.User', function() {
 
         it('should check that the username is available', function() {
             var result;
@@ -280,7 +280,7 @@ describe('$kinvey', function() {
 
     });
 
-    describe('$kinvey.Group', function() {
+    xdescribe('$kinvey.Group', function() {
 
         var _id = 'testGroup';
         var user;
@@ -387,7 +387,7 @@ describe('$kinvey', function() {
 
     });
 
-    describe('$kinvey.Object(\'classname\')', function() {
+    xdescribe('$kinvey.Object(\'classname\')', function() {
 
         describe('simple CRUD', function() {
 
@@ -784,7 +784,7 @@ describe('$kinvey', function() {
 
     });
 
-    describe('$kinvey.rpc', function() {
+    xdescribe('$kinvey.rpc', function() {
         var user;
 
         it('should signup the temporary user', function() {
@@ -928,12 +928,21 @@ describe('$kinvey', function() {
 
         it('should delete the file', function() {
             var result;
+            var fileObj;
 
             runs(function() {
-                result = $kinvey.File.delete({_id: fileId});
+                fileObj = $kinvey.File.get({_id: fileId});
             });
             waitsFor(function() {
-                return result.$resolved;
+                return fileObj.$resolved;
+            });
+            runs(function() {
+                fileObj.$delete().then(function(response) {
+                    result = response;
+                });
+            });
+            waitsFor(function() {
+                return result;
             });
             runs(function() {
                 expect(result.count).toBe(1);

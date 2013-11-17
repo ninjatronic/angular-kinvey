@@ -355,7 +355,7 @@
                         angular.forEach(mongoMethods, function(method) {
                             var origMethod = resourceDef[method];
                             resourceDef[method] = function(a1, a2, a3, a4) {
-                                if(a1.query) {
+                                if(a1 && 'query' in a1) {
                                     a1.query = JSON.stringify(a1.query);
                                 }
                                 return origMethod(a1, a2, a3, a4);
