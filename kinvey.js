@@ -286,6 +286,45 @@
                         }));
                     }
 
+                    var fileFunctions = {
+                        upload: function(metadata, mimeType, filedata, filename) {
+                            var deferred = $q.defer();
+
+                            metadata._filename = filename || metadata._filename;
+
+                            $http({
+                                method: metadata._id ? 'PUT' : 'POST',
+                                url: baseUrl + blobdata + appKey + (metadata._id ? '/' + metadata._id : ''),
+                                headers: angular.extend({
+                                    'X-Kinvey-Content-Type': mimeType
+                                }, headers.user),
+                                data: metadata
+                            }).then(function(response) {
+                                    var file = new File(response.data);
+                                    $http({
+                                        method: 'PUT',
+                                        url: file._uploadURL,
+                                        headers: angular.extend({
+                                            'Content-Type': mimeType,
+                                            'Content-Length': filedata.length,
+                                            'Accept': undefined
+                                        }, file._requiredHeaders),
+                                        data: filedata
+                                    }).then(function() {
+                                            deferred.resolve(file);
+                                        }, function(err) {
+                                            deferred.reject(err.data);
+                                        });
+                                }, function(error) {
+                                    deferred.reject(error.data);
+                                });
+
+                            return deferred.promise;
+                        }
+                    };
+
+                    var File = angular.extend($resource(baseUrl + blobdata + appKey + '/:_id', {_id: '@_id'}, { }), fileFunctions);
+
                     var mongoMethods = ['query', 'delete'];
                     function mongolise(resourceDef) {
                         angular.forEach(mongoMethods, function(method) {
@@ -340,50 +379,14 @@
                         return deferred.promise;
                     }
 
-                    var file = {
-                        upload: function(filedata, mimeType, metadata, filename, fileId) {
-                            var deferred = $q.defer();
-
-                            metadata._filename = filename || metadata._filename;
-
-                            $http({
-                                method: fileId ? 'PUT' : 'POST',
-                                url: baseUrl + blobdata + appKey + (fileId ? '/' + fileId : ''),
-                                headers: angular.extend({
-                                    'X-Kinvey-Content-Type': mimeType
-                                }, headers.user),
-                                data: metadata
-                            }).then(function(response) {
-                                    $http({
-                                        method: 'PUT',
-                                        url: response.data._uploadURL,
-                                        headers: angular.extend({
-                                            'Content-Type': mimeType,
-                                            'Content-Length': filedata.length,
-                                            'Accept': undefined
-                                        }, response.data._requiredHeaders),
-                                        data: filedata
-                                    }).then(function(response) {
-                                            deferred.resolve(response.data || {status: 'COMPLETE'});
-                                        }, function(err) {
-                                            deferred.reject(err.data);
-                                        });
-                                }, function(error) {
-                                    deferred.reject(error.data);
-                                });
-
-                            return deferred.promise;
-                        }
-                    };
-
                     var retVal = {
                         handshake: handshake,
                         User: User,
                         Group: Group,
                         Object: Object,
+                        File: File,
                         alias: alias,
-                        rpc: rpc,
-                        file: file
+                        rpc: rpc
                     };
 
                     return retVal;

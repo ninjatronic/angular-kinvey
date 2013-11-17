@@ -854,19 +854,23 @@ describe('$kinvey', function() {
         it('should upload a file', function() {
             var result;
             runs(function() {
-                $kinvey.file
-                    .upload('this is the file contents', 'text/plain', {
+                $kinvey.File
+                    .upload({
                         size: 25,
                         meta: 'this is metadata'
-                    }, 'myFile.txt', undefined)
+                    }, 'text/plain', 'this is the file contents', 'myFile.txt')
                     .then(function(response) {
+                        console.log(response);
                         result = response;
+                    }, function(error) {
+                        console.log(error);
                     });
             });
             waitsFor(function() {
                 return result;
             });
             runs(function() {
+                console.log(result);
                 expect(result).toBeDefined();
             });
         });

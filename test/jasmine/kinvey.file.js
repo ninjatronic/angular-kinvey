@@ -38,13 +38,13 @@ describe('$kinvey', function() {
         });
 
         it('should be defined', function() {
-            expect($kinvey.file).toBeDefined();
+            expect($kinvey.File).toBeDefined();
         });
 
         describe('upload', function() {
 
             it('should be defined', function() {
-                expect($kinvey.file.upload).toBeDefined();
+                expect($kinvey.File.upload).toBeDefined();
             });
 
             describe('without a filename or fileId', function() {
@@ -81,10 +81,10 @@ describe('$kinvey', function() {
                         'Content-Type':'application/json;charset=utf-8',
                         'X-Kinvey-Content-Type': 'text/plain'
                     });
-                    $kinvey.file.upload('this is the file contents', 'text/plain', {
+                    $kinvey.File.upload({
                         size: 35,
                         meta: 'this is metadata'
-                    });
+                    }, 'text/plain', 'this is the file contents');
                     $httpBackend.flush();
                 })
 
@@ -125,10 +125,10 @@ describe('$kinvey', function() {
                         'Accept':'application/json, text/plain, */*',
                         'Content-Type':'application/json;charset=utf-8'
                     });
-                    $kinvey.file.upload('this is the file contents', 'text/plain', {
+                    $kinvey.File.upload({
                         size: 35,
                         meta: 'this is metadata'
-                    }, 'myFile.txt');
+                    }, 'text/plain', 'this is the file contents', 'myFile.txt');
                     $httpBackend.flush();
                 })
 
@@ -160,7 +160,8 @@ describe('$kinvey', function() {
                 it('should make a PUT request to \'../blob/appkey/fileId\'', function() {
                     $httpBackend.expectPUT('https://baas.kinvey.com/blob/appkey/fileId', {
                         size: 35,
-                        meta: 'this is metadata'
+                        meta: 'this is metadata',
+                        _id: 'fileId'
                     }, {
                         'X-Kinvey-API-Version':3,
                         'Authorization':'Kinvey authtoken',
@@ -168,53 +169,11 @@ describe('$kinvey', function() {
                         'Content-Type':'application/json;charset=utf-8',
                         'X-Kinvey-Content-Type': 'text/plain'
                     });
-                    $kinvey.file.upload('this is the file contents', 'text/plain', {
+                    $kinvey.File.upload({
                         size: 35,
-                        meta: 'this is metadata'
-                    }, undefined, 'fileId');
-                    $httpBackend.flush();
-                })
-
-            });
-
-            describe('with a mime type', function() {
-
-                beforeEach(function() {
-                    $httpBackend
-                        .when('POST', 'https://baas.kinvey.com/blob/appkey')
-                        .respond({
-                            _id: 'bndaogh4083tyu930',
-                            _filename: 'gn80hy284hgj0bwfhi',
-                            _acl: { },
-                            'meta': 'some metadata',
-                            '_uploadURL': 'http://google.com/upload/blob',
-                            '_expiresAt': '2013-06-18T23:07:23.394Z',
-                            '_requiredHeaders': {
-                                'x-goog-acl': 'private'
-                            }
-                        });
-                    $httpBackend
-                        .when('PUT', 'http://google.com/upload/blob')
-                        .respond({
-                            ETag: 'gnrwogh24098hgiowbls'
-                        });
-                });
-
-                it('should make a POST request to \'../blob/appkey\'', function() {
-                    $httpBackend.expectPOST('https://baas.kinvey.com/blob/appkey', {
-                        size: 35,
-                        meta: 'this is metadata'
-                    }, {
-                        'X-Kinvey-API-Version':3,
-                        'Authorization':'Kinvey authtoken',
-                        'Accept':'application/json, text/plain, */*',
-                        'Content-Type':'application/json;charset=utf-8',
-                        'X-Kinvey-Content-Type': 'text/plain'
-                    });
-                    $kinvey.file.upload('this is the file contents', 'text/plain', {
-                        size: 35,
-                        meta: 'this is metadata'
-                    });
+                        meta: 'this is metadata',
+                        _id: 'fileId'
+                    }, 'text/plain', 'this is the file contents');
                     $httpBackend.flush();
                 })
 
@@ -231,10 +190,11 @@ describe('$kinvey', function() {
 
                 it('should reject with the error', function() {
                     var response;
-                    $kinvey.file.upload('this is the file contents', 'text/plain', {
+                    $kinvey.File.upload({
                         size: 35,
                         meta: 'this is metadata'
-                    }).then(undefined, function(err) {
+                    }, 'text/plain', 'this is the file contents')
+                        .then(undefined, function(err) {
                             response = err;
                         });
                     $httpBackend.flush();
@@ -275,10 +235,10 @@ describe('$kinvey', function() {
                             'x-goog-acl': 'private'
                         });
 
-                    $kinvey.file.upload('this is the file contents', 'text/plain', {
+                    $kinvey.File.upload({
                         size: 35,
                         meta: 'this is metadata'
-                    });
+                    }, 'text/plain', 'this is the file contents');
 
                     $httpBackend.flush();
                 });
@@ -310,10 +270,11 @@ describe('$kinvey', function() {
                 it('should reject with the error', function() {
                     var result;
 
-                    $kinvey.file.upload('this is the file contents', 'text/plain', {
+                    $kinvey.File.upload({
                         size: 35,
                         meta: 'this is metadata'
-                    }).then(undefined, function(err) {
+                    }, 'text/plain', 'this is the file contents')
+                        .then(undefined, function(err) {
                             result = err;
                         });
 
@@ -325,7 +286,18 @@ describe('$kinvey', function() {
             });
 
             describe('PUT success', function() {
-                var expected = {ETag: 'gnrwogh24098hgiowbls'};
+                var expected = {
+                    _id : 'bndaogh4083tyu930',
+                    _filename : 'gn80hy284hgj0bwfhi',
+                    _acl : {  },
+                    meta : 'some metadata',
+                    _uploadURL : 'http://google.com/upload/blob',
+                    _expiresAt : '2013-06-18T23:07:23.394Z',
+                    _requiredHeaders :
+                    {
+                        'x-goog-acl' : 'private'
+                    }
+                };
 
                 beforeEach(function() {
                     $httpBackend
@@ -346,19 +318,23 @@ describe('$kinvey', function() {
                         .respond(expected);
                 });
 
-                it('should resolve with the response', function() {
+                it('should resolve with the $resource object', function() {
                     var result;
 
-                    $kinvey.file.upload('this is the file contents', 'text/plain', {
+                    $kinvey.File.upload({
                         size: 35,
                         meta: 'this is metadata'
-                    }).then(function(err) {
+                    }, 'text/plain', 'this is the file contents').then(function(err) {
                             result = err;
                         });
 
                     $httpBackend.flush();
 
-                    expect(result).toBe(expected);
+                    angular.forEach(expected, function(value, key) {
+                        if(!(value instanceof Object)) {
+                            expect(result[key]).toBe(value);
+                        }
+                    });
                 });
 
             });
