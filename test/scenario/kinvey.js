@@ -832,8 +832,9 @@ describe('$kinvey', function() {
 
     });
 
-    describe('$kinvey.file', function() {
+    describe('$kinvey.File', function() {
         var user;
+        var fileId;
 
         it('should signup the temporary user', function() {
             runs(function() {
@@ -860,10 +861,7 @@ describe('$kinvey', function() {
                         meta: 'this is metadata'
                     }, 'text/plain', 'this is the file contents', 'myFile.txt')
                     .then(function(response) {
-                        console.log(response);
                         result = response;
-                    }, function(error) {
-                        console.log(error);
                     });
             });
             waitsFor(function() {
@@ -872,6 +870,21 @@ describe('$kinvey', function() {
             runs(function() {
                 console.log(result);
                 expect(result).toBeDefined();
+                fileId = result._id;
+            });
+        });
+
+        it('should get the file record', function() {
+            var result;
+
+            runs(function() {
+                result = $kinvey.File.get({_id: fileId});
+            });
+            waitsFor(function() {
+                return result.$resolved;
+            });
+            runs(function() {
+                expect(result._id).toBe(fileId);
             });
         });
 

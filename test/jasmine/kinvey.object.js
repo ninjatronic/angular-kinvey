@@ -339,7 +339,7 @@ describe('$kinvey', function() {
 
         });
 
-        describe('query $ namespace with _$ namespace', function() {
+        describe('query $ namespace', function() {
 
             it('should be defined', function() {
                 expect($kinvey.Object('classname').query).toBeDefined();

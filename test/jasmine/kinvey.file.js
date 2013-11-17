@@ -340,5 +340,159 @@ describe('$kinvey', function() {
             });
 
         });
+
+        describe('get', function() {
+            var user = {
+                username: 'badger',
+                _id: 'goat',
+                _kmd: {
+                    authtoken: 'authtoken'
+                }
+            };
+            var expected = {
+                _id : 'fileId',
+                _filename : 'gn80hy284hgj0bwfhi',
+                _acl : {  },
+                meta : 'some metadata',
+                _uploadURL : 'http://google.com/upload/blob',
+                _expiresAt : '2013-06-18T23:07:23.394Z',
+                _requiredHeaders :
+                {
+                    'x-goog-acl' : 'private'
+                }
+            };
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('GET', 'https://baas.kinvey.com/blob/appkey/fileId')
+                    .respond(expected);
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond(user);
+                $kinvey.User.login({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
+                $httpBackend.flush();
+            });
+
+            it('should be defined', function() {
+                expect($kinvey.File.get).toBeDefined();
+            });
+
+            it('should make a GET request to ../blob/appkey/:id', function() {
+                $httpBackend.expectGET('https://baas.kinvey.com/blob/appkey/fileId', {
+                    'Accept':'application/json, text/plain, */*',
+                    'X-Kinvey-API-Version':3,
+                    'Authorization':'Kinvey authtoken'
+                });
+                $kinvey.File.get({_id: 'fileId'});
+                $httpBackend.flush();
+            });
+
+            it('should return an appropriate resource object', function() {
+                var result = $kinvey.File.get({_id: 'fileId'});
+                $httpBackend.flush();
+                expect(result._id).toBe(expected._id);
+            });
+
+        });
+
+        describe('query', function() {
+
+            it('should be defined', function() {
+                expect($kinvey.File.query).toBeDefined();
+            });
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('GET', 'https://baas.kinvey.com/blob/appkey?query=%7B%22description%22:%22dolphin%22%7D')
+                    .respond([{
+                        _id: '_id',
+                        description: 'giraffe',
+                        anotherField: 'dolphin'
+                    }]);
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
+                $kinvey.User.login({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
+                $httpBackend.flush();
+            });
+
+            it('should make an authorized GET request to ../blob/appkey?query={"description":"dolphin"}', function() {
+                $httpBackend.expectGET('https://baas.kinvey.com/blob/appkey?query=%7B%22description%22:%22dolphin%22%7D', {
+                    "X-Kinvey-API-Version":3,
+                    "Authorization":"Kinvey authtoken",
+                    "Accept":"application/json, text/plain, */*"
+                });
+                $kinvey.File.query({query: {description:'dolphin'}});
+                $httpBackend.flush();
+            });
+
+            it('should return an appropriate resource object', function() {
+                var object = $kinvey.File.query({query: {description:'dolphin'}});
+                $httpBackend.flush();
+                expect(object[0].anotherField).toBe('dolphin');
+            });
+
+        });
+
+        describe('query $ namespace', function() {
+
+            it('should be defined', function() {
+                expect($kinvey.File.query).toBeDefined();
+            });
+
+            beforeEach(function() {
+                $httpBackend
+                    .when('GET', 'https://baas.kinvey.com/blob/appkey?query=%7B%22age%22:%7B%22$gte%22:5%7D%7D')
+                    .respond([{
+                        _id: '_id',
+                        description: 'giraffe',
+                        anotherField: 'dolphin'
+                    }]);
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
+                $kinvey.User.login({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
+                $httpBackend.flush();
+            });
+
+            it('should make an authorized GET request to ../blob/appkey?query={"amount":{"$gte",5}}', function() {
+                $httpBackend.expectGET('https://baas.kinvey.com/blob/appkey?query=%7B%22age%22:%7B%22$gte%22:5%7D%7D', {
+                    "X-Kinvey-API-Version":3,
+                    "Authorization":"Kinvey authtoken",
+                    "Accept":"application/json, text/plain, */*"
+                });
+                $kinvey.File.query({query: {age:{$gte:5}}});
+                $httpBackend.flush();
+            });
+
+            it('should return an appropriate resource object', function() {
+                var object = $kinvey.File.query({query: {age:{$gte:5}}});
+                $httpBackend.flush();
+                expect(object[0].anotherField).toBe('dolphin');
+            });
+
+        });
+
     });
 });

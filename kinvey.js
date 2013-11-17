@@ -108,6 +108,56 @@
                         return deferred.promise;
                     }
 
+                    function Object(className) {
+                        return mongolise($resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
+                            create: {
+                                method: 'POST',
+                                headers: headers.user,
+                                params: {
+                                    _id: ''
+                                }
+                            },
+                            get: {
+                                method: 'GET',
+                                headers: headers.user
+                            },
+                            count: {
+                                method: 'GET',
+                                headers: headers.user,
+                                params: {
+                                    _id: '_count'
+                                }
+                            },
+                            save: {
+                                method: 'PUT',
+                                headers: headers.user
+                            },
+                            delete: {
+                                method: 'DELETE',
+                                headers: headers.user
+                            },
+                            query: {
+                                method: 'GET',
+                                headers: headers.user,
+                                isArray: true,
+                                params: {
+                                    _id: ''
+                                }
+                            },
+                            group: {
+                                method: 'POST',
+                                headers: headers.user,
+                                isArray: true,
+                                params: {
+                                    _id: '_group'
+                                },
+                                transformRequest: function(data) {
+                                    return angular.toJson(data);
+                                }
+                            }
+                        }));
+                    }
+
                     var User = mongolise($resource(baseUrl + userdata + appKey + '/:_id', {_id: '@_id'} ,{
                         login: {
                             method: 'POST',
@@ -236,56 +286,6 @@
                         }
                     });
 
-                    function Object(className) {
-                        return mongolise($resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
-                            create: {
-                                method: 'POST',
-                                headers: headers.user,
-                                params: {
-                                    _id: ''
-                                }
-                            },
-                            get: {
-                                method: 'GET',
-                                headers: headers.user
-                            },
-                            count: {
-                                method: 'GET',
-                                headers: headers.user,
-                                params: {
-                                    _id: '_count'
-                                }
-                            },
-                            save: {
-                                method: 'PUT',
-                                headers: headers.user
-                            },
-                            delete: {
-                                method: 'DELETE',
-                                headers: headers.user
-                            },
-                            query: {
-                                method: 'GET',
-                                headers: headers.user,
-                                isArray: true,
-                                params: {
-                                    _id: ''
-                                }
-                            },
-                            group: {
-                                method: 'POST',
-                                headers: headers.user,
-                                isArray: true,
-                                params: {
-                                    _id: '_group'
-                                },
-                                transformRequest: function(data) {
-                                    return angular.toJson(data);
-                                }
-                            }
-                        }));
-                    }
-
                     var fileFunctions = {
                         upload: function(metadata, mimeType, filedata, filename) {
                             var deferred = $q.defer();
@@ -322,8 +322,10 @@
                             return deferred.promise;
                         }
                     };
-
-                    var File = angular.extend($resource(baseUrl + blobdata + appKey + '/:_id', {_id: '@_id'}, { }), fileFunctions);
+                    function addFileFunctions(resourceDef) {
+                        resourceDef.upload = fileFunctions.upload;
+                        return resourceDef;
+                    };
 
                     var mongoMethods = ['query', 'delete'];
                     function mongolise(resourceDef) {
@@ -347,6 +349,21 @@
                         };
                         return resourceDef;
                     }
+
+                    var File = addFileFunctions(mongolise($resource(baseUrl + blobdata + appKey + '/:_id', {_id: '@_id'}, {
+                        get: {
+                            method: 'GET',
+                            headers: headers.user
+                        },
+                        query:  {
+                            method:'GET',
+                            headers: headers.user,
+                            isArray:true,
+                            params: {
+                                _id: ''
+                            }
+                        }
+                    })));
 
                     function verifyAlias(alias, protectedName) {
                         if(alias === protectedName) {
