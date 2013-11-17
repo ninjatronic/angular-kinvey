@@ -320,10 +320,33 @@
                                 });
 
                             return deferred.promise;
+                        },
+                        download: function(target, ttl) {
+                            var deferred = $q.defer();
+
+                            var args = {_id: target._id ? target._id : target};
+                            if(ttl) {
+                                args.ttl_in_seconds = ttl
+                            }
+                            var file = File.get(args);
+                            file.$promise
+                                .then(function() {
+                                    $http.get(file._downloadURL, {})
+                                        .then(function(response) {
+                                            deferred.resolve(response.data);
+                                        }, function(err) {
+                                            deferred.reject(err);
+                                        });
+                                }, function(err) {
+                                    deferred.reject(err);
+                                });
+
+                            return deferred.promise;
                         }
                     };
                     function addFileFunctions(resourceDef) {
                         resourceDef.upload = fileFunctions.upload;
+                        resourceDef.download = fileFunctions.download;
                         return resourceDef;
                     };
 

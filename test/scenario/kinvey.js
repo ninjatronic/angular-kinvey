@@ -888,6 +888,45 @@ describe('$kinvey', function() {
             });
         });
 
+        it('should download the file using its resource object', function() {
+            var result;
+            var fileObj;
+
+            runs(function() {
+                fileObj = $kinvey.File.get({_id: fileId});
+            });
+            waitsFor(function() {
+                return fileObj.$resolved;
+            });
+            runs(function() {
+                $kinvey.File.download(fileObj).then(function(response){
+                    result = response;
+                });
+            });
+            waitsFor(function() {
+                return result;
+            });
+            runs(function() {
+                expect(result).toBe('this is the file contents');
+            });
+        });
+
+        it('should download the file by id', function() {
+            var result;
+
+            runs(function() {
+                $kinvey.File.download(fileId).then(function(response){
+                    result = response;
+                });
+            });
+            waitsFor(function() {
+                return result;
+            });
+            runs(function() {
+                expect(result).toBe('this is the file contents');
+            });
+        });
+
         it('should delete the temporary user', function() {
             var response;
             runs(function() {
