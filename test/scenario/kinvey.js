@@ -826,6 +826,7 @@ describe('$kinvey', function() {
 
     describe('$kinvey.File', function() {
         var user;
+        var file;
         var fileId;
 
         it('should signup the temporary user', function() {
@@ -844,24 +845,38 @@ describe('$kinvey', function() {
             });
         });
 
+        it('should save a file definition', function() {
+            runs(function() {
+                file = new $kinvey.File({
+                    size: 25,
+                    meta: 'this is metadata'
+                });
+                file.$save('text/plain');
+            });
+            waitsFor(function() {
+                return file.$resolved;
+            });
+            runs(function() {
+                expect(file._id).toBeDefined();
+                fileId = file._id;
+            });
+        });
+
         it('should upload a file', function() {
             var result;
             runs(function() {
-                $kinvey.File
-                    .upload({
-                        size: 25,
-                        meta: 'this is metadata'
-                    }, 'text/plain', 'this is the file contents', 'myFile.txt')
-                    .then(function(response) {
-                        result = response;
-                    });
+                result = file.$upload('this is the file contents', 'text/plain');
+                result.$promise.then(function() {
+
+                }, function(err) {
+                    console.log(err);
+                });
             });
             waitsFor(function() {
-                return result;
+                return result.$resolved;
             });
             runs(function() {
-                expect(result).toBeDefined();
-                fileId = result._id;
+                expect(result.$resolved).toBe(true);
             });
         });
 

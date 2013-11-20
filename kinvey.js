@@ -38,6 +38,7 @@
                 "$all", "$elemMatch", "$size", // array
                 "$", "$elemMatch", "$slice" // projection
             ];
+            var mongoMethods = ['query', 'delete'];
 
             function isWindow(obj) {
                 return obj && obj.document && obj.location && obj.alert && obj.setInterval;
@@ -76,6 +77,46 @@
                 return JSON.stringify(obj, toJsonReplacer, pretty ? '  ' : null);
             }
 
+            var funcDefs = {
+                handshake: function() {
+                    return {
+                        method: 'GET',
+                        url: baseUrl + appdata + appKey,
+                        headers: headers.basic
+                    };
+                },
+                rpc: function(endpoint, data) {
+                    return {
+                        method: 'POST',
+                        url: baseUrl + rpcdata + appKey + '/' + customdata + endpoint,
+                        headers: headers.user,
+                        data: data
+                    };
+                },
+                upload: function(file, filedata, mimeType) {
+                    return {
+                        method: 'PUT',
+                        url: file._uploadURL,
+                        data: filedata,
+                        headers: angular.extend({
+                            'Content-Type': mimeType,
+                            'Content-Length': filedata.length,
+                            'Accept': undefined
+                        }, file._requiredHeaders)
+                    };
+                },
+                saveFile: function(file, mimeType) {
+                    return {
+                        method: file._id ? 'PUT' : 'POST',
+                        url: baseUrl + blobdata + appKey + (file._id ? '/'+file._id : ''),
+                        headers: angular.extend({
+                            'X-Kinvey-Content-Type': mimeType
+                        }, headers.user),
+                        data: file
+                    };
+                }
+            }
+
             return {
 
                 init: function(options) {
@@ -88,83 +129,219 @@
                 },
 
                 $get: ['$cookieStore', '$resource', '$http', '$q', function($cookieStore, $resource, $http, $q) {
+
+                    /*
+                        RETRIEVE THE LAST SESSION FROM COOKIES
+                     */
                     var oldToken = $cookieStore.get(appKey+':authToken');
                     if(oldToken) {
                         headers.user.Authorization = oldToken;
                     }
 
-                    function handshake() {
+                    /*
+                        THESE METHODS PROVIDE WAYS TO AUGMENT WORKFLOW WITH COMMON ADDITIONS
+                     */
+
+                    // decorates an acting promise function with a `$resource` style response structure
+                    function augmentPromise(actor, orig) {
                         var deferred = $q.defer();
-                        var retVal = {
+                        var retVal = orig || {
                             $resolved: false,
                             $promise: deferred.promise
                         };
-                        $http.get(baseUrl + appdata + appKey, {
-                            headers: headers.basic
-                        }).then(
-                                function(response) {
-                                    angular.extend(retVal, response.data);
-                                    retVal.$resolved = true;
-                                    deferred.resolve(response.data);
-                                },
-                                function(error) {
-                                    deferred.reject(error);
-                                }
-                            );
+
+                        actor(retVal, deferred);
+
                         return retVal;
                     }
 
-                    function Object(className) {
-                        return mongolise($resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
-                            create: {
-                                method: 'POST',
-                                headers: headers.user,
-                                params: {
-                                    _id: ''
-                                }
-                            },
-                            get: {
-                                method: 'GET',
-                                headers: headers.user
-                            },
-                            count: {
-                                method: 'GET',
-                                headers: headers.user,
-                                params: {
-                                    _id: '_count'
-                                }
-                            },
-                            save: {
-                                method: 'PUT',
-                                headers: headers.user
-                            },
-                            delete: {
-                                method: 'DELETE',
-                                headers: headers.user
-                            },
-                            query: {
-                                method: 'GET',
-                                headers: headers.user,
-                                isArray: true,
-                                params: {
-                                    _id: ''
-                                }
-                            },
-                            group: {
-                                method: 'POST',
-                                headers: headers.user,
-                                isArray: true,
-                                params: {
-                                    _id: '_group'
-                                },
-                                transformRequest: function(data) {
-                                    return angular.toJson(data);
-                                }
-                            }
-                        }));
+                    // provides a resolving function that manipulates a `$resource` style response structure
+                    function augmentResolve(returningObj, deferred, transformResponse) {
+                        return function(response) {
+                            var publicResponse = transformResponse ? transformResponse(response) : response;
+                            angular.extend(returningObj, publicResponse);
+                            returningObj.$resolved = true;
+                            deferred.resolve(publicResponse);
+                        }
                     }
 
-                    var User = mongolise($resource(baseUrl + userdata + appKey + '/:_id', {_id: '@_id'} ,{
+                    // provides a rejecting function that manipulates a `$resource` style response structure
+                    function augmentReject(deferred, transformResponse) {
+                        return function(response) {
+                            var publicResponse = transformResponse ? transformResponse(response) : response;
+                            deferred.reject(publicResponse);
+                        }
+                    }
+
+                    // provides special serialization for methods that require mongo-friendly serialization
+                    function augmentForMongo(resourceDef) {
+                        angular.forEach(mongoMethods, function(method) {
+                            var origMethod = resourceDef[method];
+                            resourceDef[method] = function(a1, a2, a3, a4) {
+                                if(a1 && 'query' in a1) {
+                                    a1.query = JSON.stringify(a1.query);
+                                }
+                                return origMethod(a1, a2, a3, a4);
+                            };
+                        });
+                        var origGroup = resourceDef.group;
+                        resourceDef.group = function(a1) {
+                            if(a1.reduce) {
+                                a1.reduce = a1.reduce.toString();
+                                a1.reduce = a1.reduce.replace(/\n/g,'');
+                                a1.reduce = a1.reduce.replace(/\s/g,'');
+                            }
+                            return origGroup(a1);
+                        };
+                        return resourceDef;
+                    }
+
+                    var fileFunctions = {
+                        download: function(target, ttl) {
+                            var deferred = $q.defer();
+
+                            var args = {_id: target._id ? target._id : target};
+                            if(ttl) {
+                                args.ttl_in_seconds = ttl;
+                            }
+                            var file = File.get(args);
+                            file.$promise
+                                .then(function() {
+                                    $http.get(file._downloadURL, {})
+                                        .then(function(response) {
+                                            deferred.resolve(response.data);
+                                        }, function(err) {
+                                            deferred.reject(err);
+                                        });
+                                }, function(err) {
+                                    deferred.reject(err);
+                                });
+
+                            return deferred.promise;
+                        }
+                    };
+
+                    // augments the File `$resource definition` with extra, promise based methods
+                    function augmentFileDef(resourceDef) {
+
+                        resourceDef = augmentForMongo(resourceDef);
+
+                        resourceDef.prototype.$upload = function(filedata, mimeType) {
+                            var file = this;
+                            return augmentPromise(function(retVal, deferred) {
+                                $http(funcDefs.upload(file, filedata, mimeType))
+                                    .then(
+                                        augmentResolve(retVal, deferred, getData),
+                                        augmentReject(deferred, getData));
+                            });
+                        };
+                        resourceDef.prototype.$save = function(mimeType) {
+                            var file = this;
+                            return augmentPromise(function(retVal, deferred) {
+                                $http(funcDefs.saveFile(file, mimeType))
+                                    .then(
+                                        augmentResolve(retVal, deferred, getFile),
+                                        augmentReject(deferred, getData));
+                            }, file);
+                        };
+
+                        resourceDef.download = fileFunctions.download;
+
+                        return resourceDef;
+                    }
+
+                    // gets the data component of a `$http` response object
+                    function getData(response) {
+                        return response.data;
+                    }
+
+                    // gets a File from a `$http` repsonse object
+                    function getFile(response) {
+                        return new File(getData(response));
+                    }
+
+                    /*
+                        THESE METHODS PERFORM SIMPLE 'ROUNDTRIP' OPERATIONS
+                     */
+
+                    // performs a simple handshake
+                    function handshake() {
+                        return augmentPromise(function(retVal, deferred) {
+                            $http(funcDefs.handshake())
+                                .then(
+                                    augmentResolve(retVal, deferred, getData),
+                                    augmentReject(deferred, getData));
+                        });
+                    }
+
+                    // performs an rpc call
+                    function rpc(endpoint, data) {
+                        return augmentPromise(function(retVal, deferred) {
+                            $http(funcDefs.rpc(endpoint, data))
+                                .then(
+                                    augmentResolve(retVal, deferred, getData),
+                                    augmentReject(deferred, getData));
+                        });
+                    }
+
+                    /*
+                        HERE BE `$resource` DEFINITIONS AND FACTORIES
+                     */
+
+                    // Object `$resource` definition factory
+                    function Object(className) {
+                        return augmentForMongo(
+                            $resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
+                                create: {
+                                    method: 'POST',
+                                    headers: headers.user,
+                                    params: {
+                                        _id: ''
+                                    }
+                                },
+                                get: {
+                                    method: 'GET',
+                                    headers: headers.user
+                                },
+                                count: {
+                                    method: 'GET',
+                                    headers: headers.user,
+                                    params: {
+                                        _id: '_count'
+                                    }
+                                },
+                                save: {
+                                    method: 'PUT',
+                                    headers: headers.user
+                                },
+                                delete: {
+                                    method: 'DELETE',
+                                    headers: headers.user
+                                },
+                                query: {
+                                    method: 'GET',
+                                    headers: headers.user,
+                                    isArray: true,
+                                    params: {
+                                        _id: ''
+                                    }
+                                },
+                                group: {
+                                    method: 'POST',
+                                    headers: headers.user,
+                                    isArray: true,
+                                    params: {
+                                        _id: '_group'
+                                    },
+                                    transformRequest: function(data) {
+                                        return angular.toJson(data);
+                                    }
+                                }
+                            }));
+                    }
+
+                    // User `$resource` definition
+                    var User = augmentForMongo($resource(baseUrl + userdata + appKey + '/:_id', {_id: '@_id'} ,{
                         login: {
                             method: 'POST',
                             params: {
@@ -277,6 +454,7 @@
                         }
                     }));
 
+                    // Group `$resource` definition
                     var Group = $resource(baseUrl + groupdata + appKey + '/:_id', {_id: '@_id'}, {
                         get: {
                             method: 'GET',
@@ -292,94 +470,8 @@
                         }
                     });
 
-                    var fileFunctions = {
-                        upload: function(metadata, mimeType, filedata, filename) {
-                            var deferred = $q.defer();
-
-                            metadata._filename = filename || metadata._filename;
-
-                            $http({
-                                method: metadata._id ? 'PUT' : 'POST',
-                                url: baseUrl + blobdata + appKey + (metadata._id ? '/' + metadata._id : ''),
-                                headers: angular.extend({
-                                    'X-Kinvey-Content-Type': mimeType
-                                }, headers.user),
-                                data: metadata
-                            }).then(function(response) {
-                                    var file = new File(response.data);
-                                    $http({
-                                        method: 'PUT',
-                                        url: file._uploadURL,
-                                        headers: angular.extend({
-                                            'Content-Type': mimeType,
-                                            'Content-Length': filedata.length,
-                                            'Accept': undefined
-                                        }, file._requiredHeaders),
-                                        data: filedata
-                                    }).then(function() {
-                                            deferred.resolve(file);
-                                        }, function(err) {
-                                            deferred.reject(err.data);
-                                        });
-                                }, function(error) {
-                                    deferred.reject(error.data);
-                                });
-
-                            return deferred.promise;
-                        },
-                        download: function(target, ttl) {
-                            var deferred = $q.defer();
-
-                            var args = {_id: target._id ? target._id : target};
-                            if(ttl) {
-                                args.ttl_in_seconds = ttl;
-                            }
-                            var file = File.get(args);
-                            file.$promise
-                                .then(function() {
-                                    $http.get(file._downloadURL, {})
-                                        .then(function(response) {
-                                            deferred.resolve(response.data);
-                                        }, function(err) {
-                                            deferred.reject(err);
-                                        });
-                                }, function(err) {
-                                    deferred.reject(err);
-                                });
-
-                            return deferred.promise;
-                        }
-                    };
-                    function addFileFunctions(resourceDef) {
-                        resourceDef.upload = fileFunctions.upload;
-                        resourceDef.download = fileFunctions.download;
-                        return resourceDef;
-                    }
-
-                    var mongoMethods = ['query', 'delete'];
-                    function mongolise(resourceDef) {
-                        angular.forEach(mongoMethods, function(method) {
-                            var origMethod = resourceDef[method];
-                            resourceDef[method] = function(a1, a2, a3, a4) {
-                                if(a1 && 'query' in a1) {
-                                    a1.query = JSON.stringify(a1.query);
-                                }
-                                return origMethod(a1, a2, a3, a4);
-                            };
-                        });
-                        var origGroup = resourceDef.group;
-                        resourceDef.group = function(a1) {
-                            if(a1.reduce) {
-                                a1.reduce = a1.reduce.toString();
-                                a1.reduce = a1.reduce.replace(/\n/g,'');
-                                a1.reduce = a1.reduce.replace(/\s/g,'');
-                            }
-                            return origGroup(a1);
-                        };
-                        return resourceDef;
-                    }
-
-                    var File = addFileFunctions(mongolise($resource(baseUrl + blobdata + appKey + '/:_id', {_id: '@_id'}, {
+                    // File `$resource` definition
+                    var File = augmentFileDef($resource(baseUrl + blobdata + appKey + '/:_id', {_id: '@_id'}, {
                         get: {
                             method: 'GET',
                             headers: headers.user
@@ -396,14 +488,20 @@
                             method:'DELETE',
                             headers: headers.user
                         }
-                    })));
+                    }));
 
+                    /*
+                        THESE METHODS ALLOW ALIASES FOR OBJECT DEFINITIONS TO BE CREATED
+                     */
+
+                    // verify that a critical method is not being overridden
                     function verifyAlias(alias, protectedName) {
                         if(alias === protectedName) {
                             throw 'aliases must not attempt to overwrite $kinvey.'+protectedName;
                         }
                     }
 
+                    // set up an alias
                     function alias(classname, aliasname) {
                         verifyAlias(aliasname, 'handshake');
                         verifyAlias(aliasname, 'User');
@@ -411,31 +509,14 @@
                         verifyAlias(aliasname, 'Object');
                         verifyAlias(aliasname, 'alias');
 
-                        retVal[aliasname] = Object(classname);
+                        api[aliasname] = Object(classname);
                     }
 
-                    function rpc(endpoint, data) {
-                        var deferred = $q.defer();
-                        var retVal = {
-                            $resolved: false,
-                            $promise: deferred.promise
-                        };
-                        $http.post(baseUrl + rpcdata + appKey + '/' + customdata + endpoint, data, {
-                            headers: headers.user
-                        }).then(
-                            function(response) {
-                                angular.extend(retVal, response.data);
-                                retVal.$resolved = true;
-                                deferred.resolve(response.data);
-                            },
-                            function(error) {
-                                deferred.reject(error);
-                            }
-                        );
-                        return retVal;
-                    }
+                    /*
+                        THIS STATEMENT RETURNS THE PUBLIC API
+                     */
 
-                    var retVal = {
+                    var api = {
                         handshake: handshake,
                         User: User,
                         Group: Group,
@@ -444,8 +525,7 @@
                         alias: alias,
                         rpc: rpc
                     };
-
-                    return retVal;
+                    return api;
                 }]
             };
     }]);
