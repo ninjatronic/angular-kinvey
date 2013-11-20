@@ -34,64 +34,6 @@
                 }
             };
 
-            /*
-             CUSTOM SERIALIZATION METHODS
-
-             Since AngularJS strips the `$` namespace out from objects when it serializes them we
-             need to customize this behaviour to preserve mongo operators in queries
-             */
-
-            function isWindow(obj) {
-                return obj && obj.document && obj.location && obj.alert && obj.setInterval;
-            }
-
-            function isScope(obj) {
-                return obj && obj.$evalAsync && obj.$watch;
-            }
-
-            function toJsonReplacer(key, value) {
-                var val = value;
-
-                if (typeof key === 'string' && key.charAt(0) === '$') {
-                    var isMongo = false;
-                    angular.forEach(mongoOperators, function(op) {
-                        if(op == key) {
-                            isMongo = true;
-                        }
-                    });
-                    if(!isMongo) {
-                        val = undefined;
-                    }
-                } else if (isWindow(value)) {
-                    val = '$WINDOW';
-                } else if (value &&  document === value) {
-                    val = '$DOCUMENT';
-                } else if (isScope(value)) {
-                    val = '$SCOPE';
-                }
-
-                return val;
-            }
-
-            function toJson(obj, pretty) {
-                if (typeof obj === 'undefined') return undefined;
-                return JSON.stringify(obj, toJsonReplacer, pretty ? '  ' : null);
-            }
-
-            /*
-             STRINGS FOR MONGO COMPATABILITY
-             */
-            var mongoOperators = [
-                "$gt", "$gte", "$in", "$lt", "$lte", "$ne", "$nin", // comparison
-                "$or", "$and", "$not", "$nor", // logical
-                "$exists", "$type", // element
-                "$mod", "$regex", "$where", //evaluation
-                "$geoWithin", "$geoIntersects", "$near", "$nearSphere", //geospatial
-                "$all", "$elemMatch", "$size", // array
-                "$", "$elemMatch", "$slice" // projection
-            ];
-            var mongoMethods = ['query', 'delete'];
-
             return {
 
                 init: function(options) {
@@ -162,6 +104,64 @@
                     };
 
                     /*
+                     CUSTOM SERIALIZATION METHODS
+
+                     Since AngularJS strips the `$` namespace out from objects when it serializes them we
+                     need to customize this behaviour to preserve mongo operators in queries
+                     */
+
+                    function isWindow(obj) {
+                        return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+                    }
+
+                    function isScope(obj) {
+                        return obj && obj.$evalAsync && obj.$watch;
+                    }
+
+                    function toJsonReplacer(key, value) {
+                        var val = value;
+
+                        if (typeof key === 'string' && key.charAt(0) === '$') {
+                            var isMongo = false;
+                            angular.forEach(mongoOperators, function(op) {
+                                if(op == key) {
+                                    isMongo = true;
+                                }
+                            });
+                            if(!isMongo) {
+                                val = undefined;
+                            }
+                        } else if (isWindow(value)) {
+                            val = '$WINDOW';
+                        } else if (value &&  document === value) {
+                            val = '$DOCUMENT';
+                        } else if (isScope(value)) {
+                            val = '$SCOPE';
+                        }
+
+                        return val;
+                    }
+
+                    function toJson(obj, pretty) {
+                        if (typeof obj === 'undefined') return undefined;
+                        return JSON.stringify(obj, toJsonReplacer, pretty ? '  ' : null);
+                    }
+
+                    /*
+                     STRINGS FOR MONGO COMPATABILITY
+                     */
+                    var mongoOperators = [
+                        "$gt", "$gte", "$in", "$lt", "$lte", "$ne", "$nin", // comparison
+                        "$or", "$and", "$not", "$nor", // logical
+                        "$exists", "$type", // element
+                        "$mod", "$regex", "$where", //evaluation
+                        "$geoWithin", "$geoIntersects", "$near", "$nearSphere", //geospatial
+                        "$all", "$elemMatch", "$size", // array
+                        "$", "$elemMatch", "$slice" // projection
+                    ];
+                    var mongoMethods = ['query', 'delete'];
+
+                    /*
                         THESE METHODS PROVIDE WAYS TO AUGMENT WORKFLOW WITH COMMON ADDITIONS
                      */
 
@@ -219,7 +219,7 @@
                         return resourceDef;
                     }
 
-                    // augments the File `$resource definition` with extra, promise based methods
+                    // augments the File `$resource` definition with extra, promise based methods
                     function augmentFileDef(resourceDef) {
 
                         resourceDef.prototype.$download = function() {
@@ -278,6 +278,31 @@
                         return resourceDef;
                     }
 
+                    // augments the Object `$resource` definition
+                    function augmentObjectDef(resourceDef) {
+
+                        resourceDef.save = function(obj) {
+                            if(obj._id) {
+                                return Object.update(obj);
+                            } else {
+                                return Object.create(obj);
+                            }
+                        };
+
+                        resourceDef.prototype.$save = function(args) {
+                            if(args && args._id && !this._id) {
+                                this._id = args._id;
+                            }
+                            if(this._id) {
+                                return this.$update(args);
+                            } else {
+                                return this.$create(args);
+                            }
+                        };
+
+                        return resourceDef;
+                    }
+
                     // gets the data component of a `$http` response object
                     function getData(response) {
                         return response.data;
@@ -318,171 +343,214 @@
 
                     // Object `$resource` definition factory
                     var Object = function(className) {
-                        return augmentForMongo(
-                            $resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
-                                create: {
-                                    method: 'POST',
-                                    headers: headers.user,
-                                    params: {
-                                        _id: ''
-                                    }
-                                },
-                                get: {
-                                    method: 'GET',
-                                    headers: headers.user
-                                },
-                                count: {
-                                    method: 'GET',
-                                    headers: headers.user,
-                                    params: {
-                                        _id: '_count'
-                                    }
-                                },
-                                save: {
-                                    method: 'PUT',
-                                    headers: headers.user
-                                },
-                                delete: {
-                                    method: 'DELETE',
-                                    headers: headers.user
-                                },
-                                query: {
-                                    method: 'GET',
-                                    headers: headers.user,
-                                    isArray: true,
-                                    params: {
-                                        _id: ''
-                                    }
-                                },
-                                group: {
-                                    method: 'POST',
-                                    headers: headers.user,
-                                    isArray: true,
-                                    params: {
-                                        _id: '_group'
+                        return augmentObjectDef(
+                            augmentForMongo(
+                                $resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
+                                    create: {
+                                        method: 'POST',
+                                        transformResponse: function(data) {
+                                            return new (Object(className))(angular.fromJson(data));
+                                        },
+                                        headers: headers.user,
+                                        params: {
+                                            _id: ''
+                                        }
                                     },
-                                    transformRequest: function(data) {
-                                        return toJson(data);
+                                    get: {
+                                        method: 'GET',
+                                        transformResponse: function(data) {
+                                            return new (Object(className))(angular.fromJson(data));
+                                        },
+                                        headers: headers.user
+                                    },
+                                    count: {
+                                        method: 'GET',
+                                        headers: headers.user,
+                                        params: {
+                                            _id: '_count'
+                                        }
+                                    },
+                                    update: {
+                                        method: 'PUT',
+                                        transformResponse: function(data) {
+                                            return new (Object(className))(angular.fromJson(data));
+                                        },
+                                        headers: headers.user
+                                    },
+                                    delete: {
+                                        method: 'DELETE',
+                                        headers: headers.user
+                                    },
+                                    query: {
+                                        method: 'GET',
+                                        transformResponse: function(data) {
+                                            var retVal = [];
+                                            var objs = angular.fromJson(data);
+                                            angular.forEach(objs, function(obj) {
+                                                retVal.push(new (Object(className))(obj));
+                                            });
+                                            return retVal;
+                                        },
+                                        headers: headers.user,
+                                        isArray: true,
+                                        params: {
+                                            _id: ''
+                                        }
+                                    },
+                                    group: {
+                                        method: 'POST',
+                                        headers: headers.user,
+                                        isArray: true,
+                                        params: {
+                                            _id: '_group'
+                                        },
+                                        transformRequest: function(data) {
+                                            return toJson(data);
+                                        }
                                     }
-                                }
-                            }));
+                                })));
                     };
 
                     // User `$resource` definition
                     var User =
                         augmentForMongo(
                             $resource(baseUrl + userdata + appKey + '/:_id', {_id: '@_id'} ,{
-                        login: {
-                            method: 'POST',
-                            params: {
-                                _id: 'login'
-                            },
-                            transformResponse: function(data) {
-                                data = angular.fromJson(data);
-                                if(!data.error) {
-                                    headers.user.Authorization = 'Kinvey '+data._kmd.authtoken;
-                                    $cookieStore.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
-                                }
-                                return new User(data);
-                            },
-                            headers: headers.user
-                        },
-                        current: {
-                            method: 'GET',
-                            params: {
-                                _id: '_me'
-                            },
-                            headers: headers.user
-                        },
-                        logout: {
-                            method: 'POST',
-                            params: {
-                                _id: '_logout'
-                            },
-                            transformResponse: function() {
-                                headers.user.Authorization = headers.basic.Authorization;
-                                $cookieStore.remove(appKey+':authToken');
-                            },
-                            headers: headers.user
-                        },
-                        signup: {
-                            method: 'POST',
-                            headers: headers.basic,
-                            transformResponse: function(data) {
+                                login: {
+                                    method: 'POST',
+                                    params: {
+                                        _id: 'login'
+                                    },
+                                    transformResponse: function(data) {
+                                        data = angular.fromJson(data);
+                                        if(!data.error) {
+                                            headers.user.Authorization = 'Kinvey '+data._kmd.authtoken;
+                                            $cookieStore.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
+                                        }
+                                        return new User(data);
+                                    },
+                                    headers: headers.user
+                                },
+                                current: {
+                                    method: 'GET',
+                                    params: {
+                                        _id: '_me'
+                                    },
+                                    transformResponse: function(data) {
+                                        return new User(angular.fromJson(data));
+                                    },
+                                    headers: headers.user
+                                },
+                                logout: {
+                                    method: 'POST',
+                                    params: {
+                                        _id: '_logout'
+                                    },
+                                    transformResponse: function() {
+                                        headers.user.Authorization = headers.basic.Authorization;
+                                        $cookieStore.remove(appKey+':authToken');
+                                    },
+                                    headers: headers.user
+                                },
+                                signup: {
+                                    method: 'POST',
+                                    headers: headers.basic,
+                                    transformResponse: function(data) {
 
-                                data = angular.fromJson(data);
-                                if(!data.error) {
-                                    headers.user.Authorization = 'Kinvey '+data._kmd.authtoken;
-                                    $cookieStore.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
+                                        data = angular.fromJson(data);
+                                        if(!data.error) {
+                                            headers.user.Authorization = 'Kinvey '+data._kmd.authtoken;
+                                            $cookieStore.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
+                                        }
+                                        return new User(data);
+                                    }
+                                },
+                                get: {
+                                    method: 'GET',
+                                    transformResponse: function(data) {
+                                        return new User(angular.fromJson(data));
+                                    },
+                                    headers: headers.user
+                                },
+                                lookup: {
+                                    method: 'POST',
+                                    transformResponse: function(data) {
+                                        var retVal = [];
+                                        data = angular.fromJson(data);
+                                        angular.forEach(data, function(user) {
+                                            retVal.push(new User(user));
+                                        });
+                                        return retVal;
+                                    },
+                                    headers: headers.user,
+                                    isArray:true,
+                                    params: {
+                                        _id: '_lookup'
+                                    }
+                                },
+                                save:   {
+                                    method:'PUT',
+                                    transformResponse: function(data) {
+                                        return new User(angular.fromJson(data));
+                                    },
+                                    headers: headers.user
+                                },
+                                query:  {
+                                    method:'GET',
+                                    transformResponse: function(data) {
+                                        var retVal = [];
+                                        data = angular.fromJson(data);
+                                        angular.forEach(data, function(user) {
+                                            retVal.push(new User(user));
+                                        });
+                                        return retVal;
+                                    },
+                                    headers: headers.user,
+                                    isArray:true,
+                                    params: {
+                                        _id: ''
+                                    }
+                                },
+                                delete: {
+                                    method:'DELETE',
+                                    params: {
+                                        hard: true
+                                    },
+                                    headers: headers.user
+                                },
+                                suspend: {
+                                    method:'DELETE',
+                                    headers: headers.user
+                                },
+                                verifyEmail: {
+                                    method: 'POST',
+                                    headers: headers.basic,
+                                    url: baseUrl+rpcdata+appKey+'/:username:email/user-email-verification-initiate',
+                                    params: {
+                                        username: '@username',
+                                        email: '@email'
+                                    },
+                                    transformRequest: function() {
+                                        return '';
+                                    }
+                                },
+                                resetPassword: {
+                                    method: 'POST',
+                                    headers: headers.basic,
+                                    url: baseUrl+rpcdata+appKey+'/:username:email/user-password-reset-initiate',
+                                    params: {
+                                        username: '@username',
+                                        email: '@email'
+                                    },
+                                    transformRequest: function() {
+                                        return '';
+                                    }
+                                },
+                                checkUsernameExists: {
+                                    method: 'POST',
+                                    headers: headers.basic,
+                                    url: baseUrl+rpcdata+appKey+'/check-username-exists'
                                 }
-                                return new User(data);
-                            }
-                        },
-                        get: {
-                            method: 'GET',
-                            headers: headers.user
-                        },
-                        lookup: {
-                            method: 'POST',
-                            headers: headers.user,
-                            isArray:true,
-                            params: {
-                                _id: '_lookup'
-                            }
-                        },
-                        save:   {
-                            method:'PUT',
-                            headers: headers.user
-                        },
-                        query:  {
-                            method:'GET',
-                            headers: headers.user,
-                            isArray:true,
-                            params: {
-                                _id: ''
-                            }
-                        },
-                        delete: {
-                            method:'DELETE',
-                            params: {
-                                hard: true
-                            },
-                            headers: headers.user
-                        },
-                        suspend: {
-                            method:'DELETE',
-                            headers: headers.user
-                        },
-                        verifyEmail: {
-                            method: 'POST',
-                            headers: headers.basic,
-                            url: baseUrl+rpcdata+appKey+'/:username:email/user-email-verification-initiate',
-                            params: {
-                                username: '@username',
-                                email: '@email'
-                            },
-                            transformRequest: function() {
-                                return '';
-                            }
-                        },
-                        resetPassword: {
-                            method: 'POST',
-                            headers: headers.basic,
-                            url: baseUrl+rpcdata+appKey+'/:username:email/user-password-reset-initiate',
-                            params: {
-                                username: '@username',
-                                email: '@email'
-                            },
-                            transformRequest: function() {
-                                return '';
-                            }
-                        },
-                        checkUsernameExists: {
-                            method: 'POST',
-                            headers: headers.basic,
-                            url: baseUrl+rpcdata+appKey+'/check-username-exists'
-                        }
-                    }));
+                            }));
 
                     // Group `$resource` definition
                     var Group =

@@ -19,7 +19,7 @@ describe('$kinvey', function() {
             expect($kinvey.Object).toBeDefined();
         });
 
-        describe('create', function() {
+        xdescribe('create', function() {
 
             it('should be defined', function() {
                 expect($kinvey.Object('classname').create).toBeDefined();
@@ -74,7 +74,7 @@ describe('$kinvey', function() {
 
         });
 
-        describe('save', function() {
+        xdescribe('save', function() {
 
             it('should be defined', function() {
                 expect($kinvey.Object('classname').save).toBeDefined();
@@ -129,6 +129,103 @@ describe('$kinvey', function() {
                 expect(object.anotherField).toBe('dolphin');
             });
 
+        });
+
+        describe('$save', function() {
+            var object;
+
+            beforeEach(function() {
+                $kinvey.alias('classname', 'Badger');
+                object = new $kinvey.Badger();
+                $httpBackend
+                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                    .respond({
+                        username: 'badger',
+                        _id: 'goat',
+                        _kmd: {
+                            authtoken: 'authtoken'
+                        }
+                    });
+                $kinvey.User.login({
+                    'username':'badger',
+                    'password':'giraffe'
+                });
+                $httpBackend.flush();
+            });
+
+            afterEach(function() {
+                $httpBackend.verifyNoOutstandingExpectation();
+                $httpBackend.verifyNoOutstandingRequest();
+            });
+
+            describe('without an _id', function() {
+
+                beforeEach(function() {
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/appdata/appkey/classname')
+                        .respond({
+                            _id: 'newId',
+                            description: 'giraffe'
+                        });
+                });
+
+                it('should make an authorized POST request to ../appdata/appkey/classname', function() {
+                    $httpBackend.expectPOST('https://baas.kinvey.com/appdata/appkey/classname', {
+                        description: 'giraffe'
+                    }, {
+                        "X-Kinvey-API-Version":3,
+                        "Authorization":"Kinvey authtoken",
+                        "Accept":"application/json, text/plain, */*",
+                        "Content-Type":"application/json;charset=utf-8"
+                    });
+                    object.description = 'giraffe';
+                    object.$save();
+                    $httpBackend.flush();
+                });
+
+                it('should return an appropriate resource object', function() {
+                    object.description = 'giraffe';
+                    object.$save();
+                    $httpBackend.flush();
+                    expect(object._id).toBe('newId');
+                    expect(object.description).toBe('giraffe');
+                });
+
+            });
+
+            describe('with an _id', function() {
+
+                beforeEach(function() {
+                    object._id = 'newId';
+                    $httpBackend
+                        .when('PUT', 'https://baas.kinvey.com/appdata/appkey/classname/newId')
+                        .respond({
+                            _id: 'newId',
+                            description: 'giraffe'
+                        });
+                });
+
+                it('should make an authorized PUT request to ../appdata/appkey/classname/newId', function() {
+                    $httpBackend.expectPUT('https://baas.kinvey.com/appdata/appkey/classname/newId', {
+                        _id: 'newId',
+                        description: 'giraffe'
+                    }, {
+                        "X-Kinvey-API-Version":3,
+                        "Authorization":"Kinvey authtoken",
+                        "Accept":"application/json, text/plain, */*",
+                        "Content-Type":"application/json;charset=utf-8"
+                    });
+                    object.description = 'giraffe';
+                    object.$save();
+                    $httpBackend.flush();
+                });
+
+                it('should return an appropriate resource object', function() {
+                    object.$save();
+                    $httpBackend.flush();
+                });
+
+            });
         });
 
         describe('get', function() {

@@ -21,7 +21,7 @@ describe('$kinvey', function() {
         $kinvey = $injector.get('$kinvey');
     });
 
-    xdescribe('$kinvey.handshake', function() {
+    describe('$kinvey.handshake', function() {
 
         it('should resolve the handshake without error', function() {
             var result;
@@ -39,7 +39,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.User', function() {
+    describe('$kinvey.User', function() {
 
         it('should check that the username is available', function() {
             var result;
@@ -276,7 +276,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.Group', function() {
+    describe('$kinvey.Group', function() {
 
         var _id = 'testGroup';
         var user;
@@ -392,7 +392,6 @@ describe('$kinvey', function() {
 
             it('should signup the temporary user', function() {
                 runs(function() {
-                    var user = new $kinvey.User()
                     user = $kinvey
                         .User
                         .signup({
@@ -413,7 +412,8 @@ describe('$kinvey', function() {
 
             it('should create a test object', function() {
                 runs(function() {
-                    object = $kinvey.TestObject.create({description: 'giraffe'});
+                    object = new $kinvey.TestObject({description: 'giraffe'});
+                    object.$save();
                 });
                 waitsFor(function() {
                     return object.$resolved;
@@ -471,7 +471,7 @@ describe('$kinvey', function() {
 
         });
 
-        xdescribe('multiple CRUD', function() {
+        describe('multiple CRUD', function() {
 
             var user;
 
@@ -589,7 +589,7 @@ describe('$kinvey', function() {
 
         });
 
-        xdescribe('complex queries', function() {
+        describe('complex queries', function() {
 
             var user;
 
@@ -681,7 +681,7 @@ describe('$kinvey', function() {
 
         });
 
-        xdescribe('aggregation', function() {
+        describe('aggregation', function() {
 
             var user;
 
@@ -791,7 +791,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.rpc', function() {
+    describe('$kinvey.rpc', function() {
         var user;
 
         it('should signup the temporary user', function() {
@@ -835,7 +835,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.File', function() {
+    describe('$kinvey.File', function() {
         var user;
         var file;
         var fileId;
