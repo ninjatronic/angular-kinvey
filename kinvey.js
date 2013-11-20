@@ -245,6 +245,15 @@
                             }, file);
                         };
 
+                        resourceDef.save = function(file, mimeType) {
+                            return augmentPromise(function(retVal, deferred) {
+                                $http(funcDefs.saveFile(file, mimeType))
+                                    .then(
+                                        augmentResolve(retVal, deferred, getFile),
+                                        augmentReject(deferred, getData));
+                            }, file);
+                        };
+
                         resourceDef.download = fileFunctions.download;
 
                         return resourceDef;

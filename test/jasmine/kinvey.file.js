@@ -218,6 +218,183 @@ describe('$kinvey', function() {
 
         });
 
+        describe('save', function() {
+            var fileObj;
+
+            beforeEach(function () {
+                fileObj = new $kinvey.File({
+                    _filename: 'myFile.txt',
+                    _uploadURL: 'http://google.com/upload/blob',
+                    _requiredHeaders: {
+                        'x-goog-acl': 'private'
+                    }
+                });
+            });
+
+            it('should be defined', function() {
+                expect($kinvey.File.save).toBeDefined();
+            });
+
+            describe('with no _id and no mimeType', function() {
+
+                beforeEach(function() {
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/blob/appkey')
+                        .respond({
+                            _id: 'fileId',
+                            _filename: 'myFile.txt',
+                            _uploadURL: 'http://google.com/upload/blob',
+                            _requiredHeaders: {
+                                'x-goog-acl': 'private'
+                            }
+                        });
+                });
+
+                it('should make a POST request to \'../blob/appkey\'', function() {
+                    $httpBackend.expectPOST('https://baas.kinvey.com/blob/appkey', fileObj, {
+                        'X-Kinvey-API-Version':3,
+                        'Authorization':'Kinvey authtoken',
+                        'Accept':'application/json, text/plain, */*',
+                        'Content-Type':'application/json;charset=utf-8'
+                    });
+                    $kinvey.File.save(fileObj);
+                    $httpBackend.flush();
+                });
+
+                it('should resolve with a File resource', function() {
+                    fileObj.$save();
+                    $httpBackend.flush();
+
+                    expect(fileObj._id).toBe('fileId');
+                    expect(fileObj._filename).toBe('myFile.txt');
+                    expect(fileObj._uploadURL).toBe('http://google.com/upload/blob')
+                    expect(fileObj.$resolved).toBeTruthy();
+                });
+
+            });
+
+            describe('with no _id and a mimeType', function() {
+
+                beforeEach(function() {
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/blob/appkey')
+                        .respond({
+                            _id: 'fileId',
+                            _filename: 'myFile.txt',
+                            _uploadURL: 'http://google.com/upload/blob',
+                            _requiredHeaders: {
+                                'x-goog-acl': 'private'
+                            }
+                        });
+                });
+
+                it('should make a POST request to \'../blob/appkey\'', function() {
+                    $httpBackend.expectPOST('https://baas.kinvey.com/blob/appkey', fileObj, {
+                        'X-Kinvey-API-Version':3,
+                        'Authorization':'Kinvey authtoken',
+                        'Accept':'application/json, text/plain, */*',
+                        'Content-Type':'application/json;charset=utf-8',
+                        'X-Kinvey-Content-Type':'text/plain'
+                    });
+                    $kinvey.File.save(fileObj, 'text/plain');
+                    $httpBackend.flush();
+                });
+
+                it('should resolve with a File resource', function() {
+                    fileObj.$save();
+                    $httpBackend.flush();
+
+                    expect(fileObj._id).toBe('fileId');
+                    expect(fileObj._filename).toBe('myFile.txt');
+                    expect(fileObj._uploadURL).toBe('http://google.com/upload/blob')
+                    expect(fileObj.$resolved).toBeTruthy();
+                });
+
+            });
+
+            describe('with an _id and no mimeType', function() {
+
+                beforeEach(function() {
+                    $httpBackend
+                        .when('PUT', 'https://baas.kinvey.com/blob/appkey/fileId')
+                        .respond({
+                            _id: 'fileId',
+                            _filename: 'myFile.txt',
+                            _uploadURL: 'http://google.com/upload/blob',
+                            _requiredHeaders: {
+                                'x-goog-acl': 'private'
+                            }
+                        });
+                });
+
+                it('should make a PUT request to \'../blob/appkey/fileId\'', function() {
+                    $httpBackend.expectPUT('https://baas.kinvey.com/blob/appkey/fileId', fileObj, {
+                        'X-Kinvey-API-Version':3,
+                        'Authorization':'Kinvey authtoken',
+                        'Accept':'application/json, text/plain, */*',
+                        'Content-Type':'application/json;charset=utf-8'
+                    });
+                    fileObj._id = 'fileId';
+                    fileObj.$save();
+                    $httpBackend.flush();
+                });
+
+                it('should resolve with a File resource', function() {
+                    fileObj._id = 'fileId';
+                    $kinvey.File.save(fileObj);
+                    $httpBackend.flush();
+
+                    expect(fileObj._id).toBe('fileId');
+                    expect(fileObj._filename).toBe('myFile.txt');
+                    expect(fileObj._uploadURL).toBe('http://google.com/upload/blob')
+                    expect(fileObj.$resolved).toBeTruthy();
+                });
+
+            });
+
+            describe('with an _id and a mimeType', function() {
+
+                beforeEach(function() {
+                    $httpBackend
+                        .when('PUT', 'https://baas.kinvey.com/blob/appkey/fileId')
+                        .respond({
+                            _id: 'fileId',
+                            _filename: 'myFile.txt',
+                            _uploadURL: 'http://google.com/upload/blob',
+                            _requiredHeaders: {
+                                'x-goog-acl': 'private'
+                            }
+                        });
+                });
+
+                it('should make a PUT request to \'../blob/appkey/fileId\'', function() {
+                    $httpBackend.expectPUT('https://baas.kinvey.com/blob/appkey/fileId', fileObj, {
+                        'X-Kinvey-API-Version':3,
+                        'Authorization':'Kinvey authtoken',
+                        'Accept':'application/json, text/plain, */*',
+                        'Content-Type':'application/json;charset=utf-8',
+                        'X-Kinvey-Content-Type':'text/plain'
+                    });
+                    fileObj._id = 'fileId';
+                    $kinvey.File.save(fileObj, 'text/plain');
+                    $httpBackend.flush();
+                });
+
+                it('should resolve with a File resource', function() {
+                    fileObj._id = 'fileId';
+                    fileObj.$save('text/plain');
+                    $httpBackend.flush();
+
+                    expect(fileObj._id).toBe('fileId');
+                    expect(fileObj._filename).toBe('myFile.txt');
+                    expect(fileObj._uploadURL).toBe('http://google.com/upload/blob')
+                    expect(fileObj.$resolved).toBeTruthy();
+                });
+
+            });
+
+        });
+
         describe('$upload', function() {
             var fileObj;
 
