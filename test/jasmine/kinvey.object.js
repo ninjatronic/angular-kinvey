@@ -428,20 +428,8 @@ describe('$kinvey', function() {
             });
 
             it('should make an authorized POST request to ../appdata/appkey/classname/_group', function() {
-                $httpBackend.expectPOST('https://baas.kinvey.com/appdata/appkey/classname/_group', {
-                    key: {
-                        description: true
-                    },
-                    initial: {
-                        count: 0
-                    },
-                    reduce: 'function(doc,out){out.count++;}',
-                    condition: {
-                        age: {
-                            $gt: 31
-                        }
-                    }
-                }, {
+                $httpBackend.expectPOST('https://baas.kinvey.com/appdata/appkey/classname/_group',
+                    '{"key":{"description":true},"initial":{"count":0},"reduce":"function(doc,out){out.count++;}","condition":{"age":{"$gt":31}}}', {
                     "X-Kinvey-API-Version":3,
                     "Authorization":"Kinvey authtoken",
                     "Accept":"application/json, text/plain, */*",

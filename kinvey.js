@@ -100,7 +100,6 @@
                     }
                     appKey = options.appKey;
                     headers.user.Authorization = headers.basic.Authorization = 'Basic '+$base64.encode(options.appKey+':'+options.appSecret);
-                    angular.toJson = toJson; // this is a hacky solution to avoiding exluding mongo operators from serialization, hopefully angular will fix this in the future
                 },
 
                 $get: ['$cookieStore', '$resource', '$http', '$q', function($cookieStore, $resource, $http, $q) {
@@ -363,7 +362,7 @@
                                         _id: '_group'
                                     },
                                     transformRequest: function(data) {
-                                        return angular.toJson(data);
+                                        return toJson(data);
                                     }
                                 }
                             }));
