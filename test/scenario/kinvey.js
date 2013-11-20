@@ -21,7 +21,7 @@ describe('$kinvey', function() {
         $kinvey = $injector.get('$kinvey');
     });
 
-    xdescribe('$kinvey.handshake', function() {
+    describe('$kinvey.handshake', function() {
 
         it('should resolve the handshake without error', function() {
             var result;
@@ -39,7 +39,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.User', function() {
+    describe('$kinvey.User', function() {
 
         it('should check that the username is available', function() {
             var result;
@@ -276,7 +276,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.Group', function() {
+    describe('$kinvey.Group', function() {
 
         var _id = 'testGroup';
         var user;
@@ -383,7 +383,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.Object(\'classname\')', function() {
+    describe('$kinvey.Object(\'classname\')', function() {
 
         describe('simple CRUD', function() {
 
@@ -780,7 +780,7 @@ describe('$kinvey', function() {
 
     });
 
-    xdescribe('$kinvey.rpc', function() {
+    describe('$kinvey.rpc', function() {
         var user;
 
         it('should signup the temporary user', function() {
@@ -881,47 +881,24 @@ describe('$kinvey', function() {
         });
 
         it('should get the file record', function() {
-            var result;
 
             runs(function() {
-                result = $kinvey.File.get({_id: fileId});
+                file = $kinvey.File.get({_id: fileId});
             });
             waitsFor(function() {
-                return result.$resolved;
+                return file.$resolved;
             });
             runs(function() {
-                expect(result._id).toBe(fileId);
+                expect(file._id).toBe(fileId);
             });
         });
 
-        it('should download the file using its resource object', function() {
-            var result;
-            var fileObj;
-
-            runs(function() {
-                fileObj = $kinvey.File.get({_id: fileId});
-            });
-            waitsFor(function() {
-                return fileObj.$resolved;
-            });
-            runs(function() {
-                $kinvey.File.download(fileObj).then(function(response){
-                    result = response;
-                });
-            });
-            waitsFor(function() {
-                return result;
-            });
-            runs(function() {
-                expect(result).toBe('this is the file contents');
-            });
-        });
-
-        it('should download the file by id', function() {
+        it('should download the file', function() {
             var result;
 
             runs(function() {
-                $kinvey.File.download(fileId).then(function(response){
+                var download = file.$download();
+                download.$promise.then(function(response){
                     result = response;
                 });
             });

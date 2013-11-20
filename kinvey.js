@@ -105,6 +105,12 @@
                         }, file._requiredHeaders)
                     };
                 },
+                download: function(file) {
+                    return {
+                        method: 'GET',
+                        url: file._downloadURL
+                    };
+                },
                 saveFile: function(file, mimeType) {
                     return {
                         method: file._id ? 'PUT' : 'POST',
@@ -196,36 +202,21 @@
                         return resourceDef;
                     }
 
-                    var fileFunctions = {
-                        download: function(target, ttl) {
-                            var deferred = $q.defer();
-
-                            var args = {_id: target._id ? target._id : target};
-                            if(ttl) {
-                                args.ttl_in_seconds = ttl;
-                            }
-                            var file = File.get(args);
-                            file.$promise
-                                .then(function() {
-                                    $http.get(file._downloadURL, {})
-                                        .then(function(response) {
-                                            deferred.resolve(response.data);
-                                        }, function(err) {
-                                            deferred.reject(err);
-                                        });
-                                }, function(err) {
-                                    deferred.reject(err);
-                                });
-
-                            return deferred.promise;
-                        }
-                    };
-
                     // augments the File `$resource definition` with extra, promise based methods
                     function augmentFileDef(resourceDef) {
 
                         resourceDef = augmentForMongo(resourceDef);
 
+
+                        resourceDef.prototype.$download = function() {
+                            var file = this;
+                            return augmentPromise(function(retVal, deferred) {
+                                $http(funcDefs.download(file))
+                                    .then(
+                                        augmentResolve(retVal, deferred, getData),
+                                        augmentReject(deferred, getData));
+                            });
+                        };
                         resourceDef.prototype.$upload = function(filedata, mimeType) {
                             var file = this;
                             return augmentPromise(function(retVal, deferred) {
@@ -261,8 +252,14 @@
                                         augmentReject(deferred, getData));
                             });
                         };
-
-                        resourceDef.download = fileFunctions.download;
+                        resourceDef.download = function(file) {
+                            return augmentPromise(function(retVal, deferred) {
+                                $http(funcDefs.download(file))
+                                    .then(
+                                        augmentResolve(retVal, deferred, getData),
+                                        augmentReject(deferred, getData));
+                            });
+                        };
 
                         return resourceDef;
                     }
@@ -491,7 +488,10 @@
                     var File = augmentFileDef($resource(baseUrl + blobdata + appKey + '/:_id', {_id: '@_id'}, {
                         get: {
                             method: 'GET',
-                            headers: headers.user
+                            headers: headers.user,
+                            transformResponse: function(data) {
+                                return new File(angular.fromJson(data));
+                            }
                         },
                         query:  {
                             method:'GET',
@@ -499,6 +499,13 @@
                             isArray:true,
                             params: {
                                 _id: ''
+                            },
+                            transformResponse: function(data) {
+                                var retVal = [];
+                                angular.forEach(angular.fromJson(data), function(obj) {
+                                    retVal.push(new File(obj));
+                                });
+                                return retVal;
                             }
                         },
                         delete: {

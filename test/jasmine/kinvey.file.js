@@ -499,206 +499,94 @@ describe('$kinvey', function() {
 
         });
 
+        describe('$download', function() {
+            var fileObj;
+
+            beforeEach(function () {
+                $httpBackend
+                    .when('GET', 'http://google.com/download/blob')
+                    .respond('this is the file contents');
+                fileObj = new $kinvey.File({
+                    _id: 'fileId',
+                    _filename: 'myFile.txt',
+                    _downloadURL: 'http://google.com/download/blob'
+                });
+            });
+
+            it('should be defined', function() {
+                expect(fileObj.$download).toBeDefined();
+            });
+
+            it('should GET the file to the _downloadURL', function() {
+                $httpBackend.expectGET('http://google.com/download/blob');
+                fileObj.$download();
+                $httpBackend.flush();
+            });
+
+            it('should resolve the response', function() {
+                var result;
+                var download = fileObj.$download();
+                download.$promise.then(function(response) {
+                    result = response;
+                });
+                $httpBackend.flush();
+                expect(result).toBe('this is the file contents');
+            });
+
+            it('should leave the file intact', function() {
+                fileObj.$download();
+                $httpBackend.flush();
+
+                expect(fileObj.ETag).toBeUndefined();
+                expect(fileObj._id).toBe('fileId');
+                expect(fileObj._filename).toBe('myFile.txt');
+                expect(fileObj._downloadURL).toBe('http://google.com/download/blob');
+            });
+
+        });
+
         describe('download', function() {
+            var fileObj;
+
+            beforeEach(function () {
+                $httpBackend
+                    .when('GET', 'http://google.com/download/blob')
+                    .respond('this is the file contents');
+                fileObj = new $kinvey.File({
+                    _id: 'fileId',
+                    _filename: 'myFile.txt',
+                    _downloadURL: 'http://google.com/download/blob'
+                });
+            });
 
             it('should be defined', function() {
                 expect($kinvey.File.download).toBeDefined();
             });
 
-            describe('with an ID and no ttl', function() {
-
-                beforeEach(function() {
-                    $httpBackend
-                        .when('GET', 'https://baas.kinvey.com/blob/appkey/fileId')
-                        .respond({
-                            _id: 'bndaogh4083tyu930',
-                            _filename: 'gn80hy284hgj0bwfhi',
-                            _acl: { },
-                            'meta': 'some metadata',
-                            '_uploadURL': 'http://google.com/upload/blob',
-                            '_downloadURL': 'http://google.com/download/blob',
-                            '_expiresAt': '2013-06-18T23:07:23.394Z',
-                            '_requiredHeaders': {
-                                'x-goog-acl': 'private'
-                            }
-                        });
-                    $httpBackend
-                        .when('GET', 'http://google.com/download/blob')
-                        .respond('file contents');
-                });
-
-                it('should make a GET request to ../blob/appkey/fileId', function() {
-                    $httpBackend.expectGET('https://baas.kinvey.com/blob/appkey/fileId', {
-                        'X-Kinvey-API-Version':3,
-                        'Authorization':'Kinvey authtoken',
-                        'Accept':'application/json, text/plain, */*'
-                    });
-                    $kinvey.File.download('fileId');
-                    $httpBackend.flush();
-                });
-
-                it('should make a GET request to the _downloadURL', function() {
-                    $httpBackend.expectGET('http://google.com/download/blob');
-                    $kinvey.File.download('fileId');
-                    $httpBackend.flush();
-                });
-
-                it('should resolve with the data from the _downloadURL', function() {
-                    var result;
-                    $kinvey.File.download('fileId').then(function(response) {
-                        result = response;
-                    });
-                    $httpBackend.flush();
-                    expect(result).toBe('file contents');
-                });
-
+            it('should GET the file to the _downloadURL', function() {
+                $httpBackend.expectGET('http://google.com/download/blob');
+                $kinvey.File.download(fileObj);
+                $httpBackend.flush();
             });
 
-            describe('with an ID and a ttl', function() {
-
-                beforeEach(function() {
-                    $httpBackend
-                        .when('GET', 'https://baas.kinvey.com/blob/appkey/fileId?ttl_in_seconds=3600')
-                        .respond({
-                            _id: 'bndaogh4083tyu930',
-                            _filename: 'gn80hy284hgj0bwfhi',
-                            _acl: { },
-                            'meta': 'some metadata',
-                            '_uploadURL': 'http://google.com/upload/blob',
-                            '_downloadURL': 'http://google.com/download/blob',
-                            '_expiresAt': '2013-06-18T23:07:23.394Z',
-                            '_requiredHeaders': {
-                                'x-goog-acl': 'private'
-                            }
-                        });
-                    $httpBackend
-                        .when('GET', 'http://google.com/download/blob')
-                        .respond('file contents');
+            it('should resolve the response', function() {
+                var result;
+                var download = $kinvey.File.download(fileObj);
+                download.$promise.then(function(response) {
+                    result = response;
                 });
-
-                it('should make a GET request to ../blob/appkey/fileId?ttl_in_seconds=3600', function() {
-                    $httpBackend.expectGET('https://baas.kinvey.com/blob/appkey/fileId?ttl_in_seconds=3600', {
-                        'X-Kinvey-API-Version':3,
-                        'Authorization':'Kinvey authtoken',
-                        'Accept':'application/json, text/plain, */*'
-                    });
-                    $kinvey.File.download('fileId', 3600);
-                    $httpBackend.flush();
-                });
-
-                it('should make a GET request to the _downloadURL', function() {
-                    $httpBackend.expectGET('http://google.com/download/blob');
-                    $kinvey.File.download('fileId', 3600);
-                    $httpBackend.flush();
-                });
-
-                it('should resolve with the data from the _downloadURL', function() {
-                    var result;
-                    $kinvey.File.download('fileId', 3600).then(function(response) {
-                        result = response;
-                    });
-                    $httpBackend.flush();
-                    expect(result).toBe('file contents');
-                });
-
+                $httpBackend.flush();
+                expect(result).toBe('this is the file contents');
             });
 
-            describe('with a resource and a ttl', function() {
+            it('should leave the file intact', function() {
+                $kinvey.File.download(fileObj);
+                $httpBackend.flush();
 
-                beforeEach(function() {
-                    $httpBackend
-                        .when('GET', 'https://baas.kinvey.com/blob/appkey/fileId?ttl_in_seconds=3600')
-                        .respond({
-                            _id: 'bndaogh4083tyu930',
-                            _filename: 'gn80hy284hgj0bwfhi',
-                            _acl: { },
-                            'meta': 'some metadata',
-                            '_uploadURL': 'http://google.com/upload/blob',
-                            '_downloadURL': 'http://google.com/download/blob',
-                            '_expiresAt': '2013-06-18T23:07:23.394Z',
-                            '_requiredHeaders': {
-                                'x-goog-acl': 'private'
-                            }
-                        });
-                    $httpBackend
-                        .when('GET', 'http://google.com/download/blob')
-                        .respond('file contents');
-                });
-
-                it('should make a GET request to ../blob/appkey/fileId?ttl_in_seconds=3600', function() {
-                    $httpBackend.expectGET('https://baas.kinvey.com/blob/appkey/fileId?ttl_in_seconds=3600', {
-                        'X-Kinvey-API-Version':3,
-                        'Authorization':'Kinvey authtoken',
-                        'Accept':'application/json, text/plain, */*'
-                    });
-                    $kinvey.File.download({_id: 'fileId'}, 3600);
-                    $httpBackend.flush();
-                });
-
-                it('should make a GET request to the _downloadURL', function() {
-                    $httpBackend.expectGET('http://google.com/download/blob');
-                    $kinvey.File.download({_id: 'fileId'}, 3600);
-                    $httpBackend.flush();
-                });
-
-                it('should resolve with the data from the _downloadURL', function() {
-                    var result;
-                    $kinvey.File.download({_id: 'fileId'}, 3600).then(function(response) {
-                        result = response;
-                    });
-                    $httpBackend.flush();
-                    expect(result).toBe('file contents');
-                });
-
-            });
-
-            describe('with a resource and no ttl', function() {
-
-                beforeEach(function() {
-                    $httpBackend
-                        .when('GET', 'https://baas.kinvey.com/blob/appkey/fileId')
-                        .respond({
-                            _id: 'bndaogh4083tyu930',
-                            _filename: 'gn80hy284hgj0bwfhi',
-                            _acl: { },
-                            'meta': 'some metadata',
-                            '_uploadURL': 'http://google.com/upload/blob',
-                            '_downloadURL': 'http://google.com/download/blob',
-                            '_expiresAt': '2013-06-18T23:07:23.394Z',
-                            '_requiredHeaders': {
-                                'x-goog-acl': 'private'
-                            }
-                        });
-                    $httpBackend
-                        .when('GET', 'http://google.com/download/blob')
-                        .respond('file contents');
-                });
-
-                it('should make a GET request to ../blob/appkey/fileId', function() {
-                    $httpBackend.expectGET('https://baas.kinvey.com/blob/appkey/fileId', {
-                        'X-Kinvey-API-Version':3,
-                        'Authorization':'Kinvey authtoken',
-                        'Accept':'application/json, text/plain, */*'
-                    });
-                    $kinvey.File.download({_id: 'fileId'});
-                    $httpBackend.flush();
-                });
-
-                it('should make a GET request to the _downloadURL', function() {
-                    $httpBackend.expectGET('http://google.com/download/blob');
-                    $kinvey.File.download({_id: 'fileId'});
-                    $httpBackend.flush();
-                });
-
-                it('should resolve with the data from the _downloadURL', function() {
-                    var result;
-                    $kinvey.File.download({_id: 'fileId'}).then(function(response) {
-                        result = response;
-                    });
-                    $httpBackend.flush();
-                    expect(result).toBe('file contents');
-                });
-
+                expect(fileObj.ETag).toBeUndefined();
+                expect(fileObj._id).toBe('fileId');
+                expect(fileObj._filename).toBe('myFile.txt');
+                expect(fileObj._downloadURL).toBe('http://google.com/download/blob');
             });
 
         });
