@@ -447,6 +447,58 @@ describe('$kinvey', function() {
 
         });
 
+        describe('upload', function() {
+            var fileObj;
+
+            beforeEach(function () {
+                $httpBackend
+                    .when('PUT', 'http://google.com/upload/blob')
+                    .respond({
+                        ETag: 'gnrwogh24098hgiowbls'
+                    });
+                fileObj = new $kinvey.File({
+                    _id: 'fileId',
+                    _filename: 'myFile.txt',
+                    _uploadURL: 'http://google.com/upload/blob',
+                    _requiredHeaders: {
+                        'x-goog-acl': 'private'
+                    }
+                });
+            });
+
+            it('should be defined', function() {
+                expect($kinvey.File.upload).toBeDefined();
+            });
+
+            it('should PUT the file to the _downloadURL', function() {
+                $httpBackend.expectPUT('http://google.com/upload/blob', 'this is the file contents', {
+                    'x-goog-acl': 'private',
+                    'Content-Type': 'text/plain',
+                    'Content-Length':25
+                });
+                $kinvey.File.upload(fileObj, 'this is the file contents', 'text/plain');
+                $httpBackend.flush();
+            });
+
+            it('should resolve the response', function() {
+                var result = $kinvey.File.upload(fileObj, 'this is the file contents', 'text/plain');
+                $httpBackend.flush();
+                expect(result.ETag).toBe('gnrwogh24098hgiowbls');
+                expect(result.$resolved).toBeTruthy();
+            });
+
+            it('should leave the file intact', function() {
+                $kinvey.File.upload(fileObj, 'this is the file contents', 'text/plain');
+                $httpBackend.flush();
+
+                expect(fileObj.ETag).toBeUndefined();
+                expect(fileObj._id).toBe('fileId');
+                expect(fileObj._filename).toBe('myFile.txt');
+                expect(fileObj._uploadURL).toBe('http://google.com/upload/blob');
+            });
+
+        });
+
         describe('download', function() {
 
             it('should be defined', function() {

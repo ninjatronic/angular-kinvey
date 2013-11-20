@@ -115,7 +115,7 @@
                         data: file
                     };
                 }
-            }
+            };
 
             return {
 
@@ -162,7 +162,7 @@
                             angular.extend(returningObj, publicResponse);
                             returningObj.$resolved = true;
                             deferred.resolve(publicResponse);
-                        }
+                        };
                     }
 
                     // provides a rejecting function that manipulates a `$resource` style response structure
@@ -170,7 +170,7 @@
                         return function(response) {
                             var publicResponse = transformResponse ? transformResponse(response) : response;
                             deferred.reject(publicResponse);
-                        }
+                        };
                     }
 
                     // provides special serialization for methods that require mongo-friendly serialization
@@ -252,6 +252,14 @@
                                         augmentResolve(retVal, deferred, getFile),
                                         augmentReject(deferred, getData));
                             }, file);
+                        };
+                        resourceDef.upload = function(file, filedata, mimeType) {
+                            return augmentPromise(function(retVal, deferred) {
+                                $http(funcDefs.upload(file, filedata, mimeType))
+                                    .then(
+                                        augmentResolve(retVal, deferred, getData),
+                                        augmentReject(deferred, getData));
+                            });
                         };
 
                         resourceDef.download = fileFunctions.download;
