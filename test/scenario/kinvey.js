@@ -21,7 +21,7 @@ describe('$kinvey', function() {
         $kinvey = $injector.get('$kinvey');
     });
 
-    describe('$kinvey.handshake', function() {
+    xdescribe('$kinvey.handshake', function() {
 
         it('should resolve the handshake without error', function() {
             var result;
@@ -39,7 +39,7 @@ describe('$kinvey', function() {
 
     });
 
-    describe('$kinvey.User', function() {
+    xdescribe('$kinvey.User', function() {
 
         it('should check that the username is available', function() {
             var result;
@@ -276,7 +276,7 @@ describe('$kinvey', function() {
 
     });
 
-    describe('$kinvey.Group', function() {
+    xdescribe('$kinvey.Group', function() {
 
         var _id = 'testGroup';
         var user;
@@ -392,6 +392,7 @@ describe('$kinvey', function() {
 
             it('should signup the temporary user', function() {
                 runs(function() {
+                    var user = new $kinvey.User()
                     user = $kinvey
                         .User
                         .signup({
@@ -426,7 +427,7 @@ describe('$kinvey', function() {
             it('should fetch the test object', function() {
                 runs(function() {
                     object = $kinvey.TestObject.get({_id: object._id});
-                })
+                });
                 waitsFor(function() {
                     return object.$resolved;
                 });
@@ -437,14 +438,24 @@ describe('$kinvey', function() {
             });
 
             it('should delete the test object', function() {
+                var result;
                 runs(function() {
-                    object = $kinvey.TestObject.delete({_id: object._id});
-                })
+                    object.$delete();
+                    object.$promise.then(function(response) {
+                        result = response;
+                    });
+                });
+                waitsFor(function() {
+                    return result;
+                });
+                runs(function() {
+                    object = $kinvey.TestObject.get({_id: object._id});
+                });
                 waitsFor(function() {
                     return object.$resolved;
                 });
                 runs(function() {
-                    expect(object.count).toBe(1);
+                    expect(object._id).toBeUndefined();
                 });
             });
 
@@ -460,7 +471,7 @@ describe('$kinvey', function() {
 
         });
 
-        describe('multiple CRUD', function() {
+        xdescribe('multiple CRUD', function() {
 
             var user;
 
@@ -578,7 +589,7 @@ describe('$kinvey', function() {
 
         });
 
-        describe('complex queries', function() {
+        xdescribe('complex queries', function() {
 
             var user;
 
@@ -670,7 +681,7 @@ describe('$kinvey', function() {
 
         });
 
-        describe('aggregation', function() {
+        xdescribe('aggregation', function() {
 
             var user;
 
@@ -780,7 +791,7 @@ describe('$kinvey', function() {
 
     });
 
-    describe('$kinvey.rpc', function() {
+    xdescribe('$kinvey.rpc', function() {
         var user;
 
         it('should signup the temporary user', function() {
@@ -824,7 +835,7 @@ describe('$kinvey', function() {
 
     });
 
-    describe('$kinvey.File', function() {
+    xdescribe('$kinvey.File', function() {
         var user;
         var file;
         var fileId;
