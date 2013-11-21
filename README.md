@@ -1,8 +1,8 @@
-# ngKinvey
+# angular-kinvey
 
-[![Build Status](https://travis-ci.org/ninjatronic/ngKinvey.png)](https://travis-ci.org/ninjatronic/ngKinvey)
+[![Build Status](https://travis-ci.org/ninjatronic/angular-kinvey.png)](https://travis-ci.org/ninjatronic/angular-kinvey)
 
-**ngKinvey** aims to provide easy-to-consume support for BaaS services provided by [Kinvey](http://kinvey.com/).
+**angular-kinvey** aims to provide easy-to-consume support for BaaS services provided by [Kinvey](http://kinvey.com/).
 This API allows an AngularJS app to interact with its backend on Kinvey programatically using the `$resource` 
 paradigm provided by Angular.
 
@@ -15,12 +15,12 @@ paradigm provided by Angular.
 
 ## Usage
 
-* [Getting Started](https://github.com/ninjatronic/ngKinvey/wiki/Getting-Started)
-* [Data Store](https://github.com/ninjatronic/ngKinvey/wiki/Data-Store)
-* [Users](https://github.com/ninjatronic/ngKinvey/wiki/Users)
-* [Location] (https://github.com/ninjatronic/ngKinvey/wiki/Location)
-* [Business Logic] (https://github.com/ninjatronic/ngKinvey/wiki/Business-Logic)
-* [Files] (https://github.com/ninjatronic/ngKinvey/wiki/Files)
+* [Getting Started](https://github.com/ninjatronic/angular-kinvey/wiki/Getting-Started)
+* [Data Store](https://github.com/ninjatronic/angular-kinvey/wiki/Data-Store)
+* [Users](https://github.com/ninjatronic/angular-kinvey/wiki/Users)
+* [Location] (https://github.com/ninjatronic/angular-kinvey/wiki/Location)
+* [Business Logic] (https://github.com/ninjatronic/angular-kinvey/wiki/Business-Logic)
+* [Files] (https://github.com/ninjatronic/angular-kinvey/wiki/Files)
 
 This documentation mirrors the structure of the [Kinvey DevCenter REST API guide](http://devcenter.kinvey.com/rest/guides/), 
 and large parts of this documentation have been copied verbatim and then altered.
@@ -30,10 +30,10 @@ and large parts of this documentation have been copied verbatim and then altered
 
 Contributions are welcome on this project.
 
-* If you think there is something missing or have discovered a bug please [open an issue](https://github.com/ninjatronic/ngKinvey/issues/new)
-* If you want to submit code to the project, please [fork the repo](https://github.com/ninjatronic/ngKinvey/fork) and submit a pull request
+* If you think there is something missing or have discovered a bug please [open an issue](https://github.com/ninjatronic/angular-kinvey/issues/new)
+* If you want to submit code to the project, please [fork the repo](https://github.com/ninjatronic/angular-kinvey/fork) and submit a pull request
 
-You can check the [project milestones](https://github.com/ninjatronic/ngKinvey/issues/milestones?with_issues=yes) for an
+You can check the [project milestones](https://github.com/ninjatronic/angular-kinvey/issues/milestones?with_issues=yes) for an
 idea of the development roadmap.
 
 ### Tooling for Development
