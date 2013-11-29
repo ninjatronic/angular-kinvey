@@ -168,10 +168,12 @@
                     // decorates an acting promise function with a `$resource` style response structure
                     function augmentPromise(actor, orig) {
                         var deferred = $q.defer();
-                        var retVal = orig || {
-                            $resolved: false,
-                            $promise: deferred.promise
-                        };
+                        var retVal = orig || { };
+
+                        if(!('$resolved' in retVal)) {
+                            retVal.$resolved = false;
+                        }
+                        retVal.$promise = deferred.promise;
 
                         actor(retVal, deferred);
 
@@ -250,14 +252,6 @@
                             }, file);
                         };
 
-                        resourceDef.save = function(file, mimeType) {
-                            return augmentPromise(function(retVal, deferred) {
-                                $http(funcDefs.saveFile(file, mimeType))
-                                    .then(
-                                        augmentResolve(retVal, deferred, getFile),
-                                        augmentReject(deferred, getData));
-                            }, file);
-                        };
                         resourceDef.upload = function(file, filedata, mimeType) {
                             return augmentPromise(function(retVal, deferred) {
                                 $http(funcDefs.upload(file, filedata, mimeType))
@@ -273,6 +267,14 @@
                                         augmentResolve(retVal, deferred, getData),
                                         augmentReject(deferred, getData));
                             });
+                        };
+                        resourceDef.save = function(file, mimeType) {
+                            return augmentPromise(function(retVal, deferred) {
+                                $http(funcDefs.saveFile(file, mimeType))
+                                    .then(
+                                        augmentResolve(retVal, deferred, getFile),
+                                        augmentReject(deferred, getData));
+                            }, file);
                         };
 
                         return resourceDef;

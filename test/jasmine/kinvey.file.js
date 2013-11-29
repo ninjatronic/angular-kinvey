@@ -216,6 +216,28 @@ describe('$kinvey', function() {
 
             });
 
+            describe('$promise', function() {
+
+                beforeEach(function() {
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/blob/appkey')
+                        .respond({
+                            _id: 'fileId',
+                            _filename: 'myFile.txt',
+                            _uploadURL: 'http://google.com/upload/blob',
+                            _requiredHeaders: {
+                                'x-goog-acl': 'private'
+                            }
+                        });
+                });
+
+                it('should be defined', function() {
+                    fileObj.$save();
+                    expect(fileObj.$promise).toBeDefined();
+                    $httpBackend.flush();
+                });
+            });
+
         });
 
         describe('save', function() {
