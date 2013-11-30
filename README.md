@@ -29,7 +29,6 @@ and large parts of this documentation have been copied verbatim and then altered
 
 If you have found this project you can encourage the developers by...
 
-* [Starring the project](https://github.com/ninjatronic/angular-kinvey/star)
 * [Voting for us on ngModules](http://ngmodules.org/modules/angular-kinvey)
 
 ## Contribution
