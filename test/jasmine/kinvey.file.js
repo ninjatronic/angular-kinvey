@@ -443,8 +443,7 @@ describe('$kinvey', function() {
             it('should PUT the file to the _downloadURL', function() {
                 $httpBackend.expectPUT('http://google.com/upload/blob', 'this is the file contents', {
                     'x-goog-acl': 'private',
-                    'Content-Type': 'text/plain',
-                    'Content-Length':25
+                    'Content-Type': 'text/plain'
                 });
                 fileObj.$upload('this is the file contents', 'text/plain');
                 $httpBackend.flush();
@@ -495,8 +494,7 @@ describe('$kinvey', function() {
             it('should PUT the file to the _downloadURL', function() {
                 $httpBackend.expectPUT('http://google.com/upload/blob', 'this is the file contents', {
                     'x-goog-acl': 'private',
-                    'Content-Type': 'text/plain',
-                    'Content-Length':25
+                    'Content-Type': 'text/plain'
                 });
                 $kinvey.File.upload(fileObj, 'this is the file contents', 'text/plain');
                 $httpBackend.flush();
