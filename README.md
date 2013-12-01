@@ -27,7 +27,7 @@ and large parts of this documentation have been copied verbatim and then altered
 
 ## Support The Project
 
-If you have found this project you can encourage the developers by...
+If you have found this project useful you can encourage the developers by...
 
 * [Voting for us on ngModules](http://ngmodules.org/modules/angular-kinvey)
 
