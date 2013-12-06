@@ -32,6 +32,7 @@ If you have found this project useful you can encourage the developers by...
 * [Voting for us on ngModules](http://ngmodules.org/modules/angular-kinvey)
 * [Like us on Facebook](https://www.facebook.com/ninjatronic)
 * [Flattr us](https://flattr.com/submit/auto?user_id=ninjatronic&url=https://github.com/ninjatronic/angular-kinvey/&title=angular-kinvey&language=&tags=github&category=software)
+* **[Make a Donation](https://pledgie.com/campaigns/23204)**
 
 ## Contribution
 
