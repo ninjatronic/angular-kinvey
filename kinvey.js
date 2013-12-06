@@ -33,9 +33,57 @@
             alias: 'aliases must not attempt to overwrite $kinvey.'
         })
 
+        .constant('$kSerialize', function(obj, pretty) {
+            var mongoOperators = [
+                "$gt", "$gte", "$in", "$lt", "$lte", "$ne", "$nin", // comparison
+                "$or", "$and", "$not", "$nor", // logical
+                "$exists", "$type", // element
+                "$mod", "$regex", "$where", //evaluation
+                "$geoWithin", "$geoIntersects", "$near", "$nearSphere", //geospatial
+                "$all", "$elemMatch", "$size", // array
+                "$", "$elemMatch", "$slice" // projection
+            ];
+
+            function isWindow(obj) {
+                return obj && obj.document && obj.location && obj.alert && obj.setInterval;
+            }
+
+            function isScope(obj) {
+                return obj && obj.$evalAsync && obj.$watch;
+            }
+
+            function toJsonReplacer(key, value) {
+                var val = value;
+
+                if (typeof key === 'string' && key.charAt(0) === '$') {
+                    var isMongo = false;
+                    angular.forEach(mongoOperators, function(op) {
+                        if(op == key) {
+                            isMongo = true;
+                        }
+                    });
+                    if(!isMongo) {
+                        val = undefined;
+                    }
+                } else if (isWindow(value)) {
+                    val = '$WINDOW';
+                } else if (value &&  document === value) {
+                    val = '$DOCUMENT';
+                } else if (isScope(value)) {
+                    val = '$SCOPE';
+                }
+
+                return val;
+            }
+
+            if (typeof obj === 'undefined') return undefined;
+            return JSON.stringify(obj, toJsonReplacer, pretty ? '  ' : null);
+
+        })
+
         .provider('$kinvey', [
-            '$kUrl', '$kHead', '$kVer', '$kErr', '$base64',
-            function($kUrl, $kHead, $kVer, $kErr, $base64) {
+            '$kUrl', '$kHead', '$kVer', '$kErr', '$kSerialize', '$base64',
+            function($kUrl, $kHead, $kVer, $kErr, $kSerialize, $base64) {
 
                 $kHead.user['X-Kinvey-API-Version'] = $kVer;
                 $kHead.basic['X-Kinvey-API-Version'] = $kVer;
@@ -45,11 +93,15 @@
                 return {
 
                     init: function(options) {
+
                         if(!options || !('appKey' in options) || !('appSecret' in options)) {
                             throw $kErr.init;
                         }
+
                         appKey = options.appKey;
+
                         var auth = 'Basic '+$base64.encode(options.appKey+':'+options.appSecret);
+
                         $kHead.user.Authorization = auth;
                         $kHead.basic.Authorization = auth;
                     },
@@ -114,61 +166,8 @@
                         };
 
                         /*
-                         CUSTOM SERIALIZATION METHODS
-
-                         Since AngularJS strips the `$` namespace out from objects when it serializes them we
-                         need to customize this behaviour to preserve mongo operators in queries
-                         */
-
-                        function isWindow(obj) {
-                            return obj && obj.document && obj.location && obj.alert && obj.setInterval;
-                        }
-
-                        function isScope(obj) {
-                            return obj && obj.$evalAsync && obj.$watch;
-                        }
-
-                        function toJsonReplacer(key, value) {
-                            var val = value;
-
-                            if (typeof key === 'string' && key.charAt(0) === '$') {
-                                var isMongo = false;
-                                angular.forEach(mongoOperators, function(op) {
-                                    if(op == key) {
-                                        isMongo = true;
-                                    }
-                                });
-                                if(!isMongo) {
-                                    val = undefined;
-                                }
-                            } else if (isWindow(value)) {
-                                val = '$WINDOW';
-                            } else if (value &&  document === value) {
-                                val = '$DOCUMENT';
-                            } else if (isScope(value)) {
-                                val = '$SCOPE';
-                            }
-
-                            return val;
-                        }
-
-                        function toJson(obj, pretty) {
-                            if (typeof obj === 'undefined') return undefined;
-                            return JSON.stringify(obj, toJsonReplacer, pretty ? '  ' : null);
-                        }
-
-                        /*
                          STRINGS FOR MONGO COMPATABILITY
                          */
-                        var mongoOperators = [
-                            "$gt", "$gte", "$in", "$lt", "$lte", "$ne", "$nin", // comparison
-                            "$or", "$and", "$not", "$nor", // logical
-                            "$exists", "$type", // element
-                            "$mod", "$regex", "$where", //evaluation
-                            "$geoWithin", "$geoIntersects", "$near", "$nearSphere", //geospatial
-                            "$all", "$elemMatch", "$size", // array
-                            "$", "$elemMatch", "$slice" // projection
-                        ];
                         var mongoMethods = ['query', 'delete'];
 
                         /*
@@ -417,7 +416,7 @@
                                                 _id: '_group'
                                             },
                                             transformRequest: function(data) {
-                                                return toJson(data);
+                                                return $kSerialize(data);
                                             }
                                         }
                                     })));
@@ -614,7 +613,8 @@
                             }
                         })));
 
-                        var Push = $resource($kUrl.base + $kUrl.push + appKey + '/:verb', {verb: '@verb'}, {
+                        var Push =
+                                $resource($kUrl.base + $kUrl.push + appKey + '/:verb', {verb: '@verb'}, {
                             register: {
                                 method: 'POST',
                                 headers: $kHead.user,
