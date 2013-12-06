@@ -19,6 +19,7 @@
             var rpcdata = 'rpc/';
             var customdata = 'custom/';
             var blobdata = 'blob/';
+            var pushdata = 'push/';
 
             /*
                 THESE LIVE HEADER OBJECTS ARE USED FOR ALL REQUESTS TO KINVEY
@@ -604,6 +605,23 @@
                         }
                     })));
 
+                    var Push = $resource(baseUrl + pushdata + appKey + '/:verb', {verb: '@verb'}, {
+                        register: {
+                            method: 'POST',
+                            headers: headers.user,
+                            params: {
+                                verb: 'register-device'
+                            }
+                        },
+                        unregister: {
+                            method: 'POST',
+                            headers: headers.user,
+                            params: {
+                                verb: 'unregister-device'
+                            }
+                        }
+                    });
+
                     /*
                         THESE METHODS ALLOW ALIASES FOR OBJECT DEFINITIONS TO BE CREATED
                      */
@@ -636,6 +654,7 @@
                         Group: Group,
                         Object: Object,
                         File: File,
+                        Push: Push,
                         alias: alias,
                         rpc: rpc
                     };
