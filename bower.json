@@ -1,6 +1,6 @@
 {
     "name": "angular-kinvey",
-    "version": "v1.1.0",
+    "version": "v2.0.0",
     "ignore": [
         "test/",
         "kinvey-endpoints/",

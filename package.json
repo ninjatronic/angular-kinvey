@@ -1,6 +1,6 @@
 {
     "name": "kinvey",
-    "version": "v1.1.0",
+    "version": "v2.0.0",
     "author": "Ninjatronic",
     "description": "AngularJS support for Kinvey BaaS",
     "contributors": [
