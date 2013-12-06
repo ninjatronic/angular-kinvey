@@ -703,7 +703,7 @@ describe('$kinvey', function() {
 
     });
 
-    describe('with storage option', function() {
+    describe('with \'cookies\' storage option', function() {
 
         var $cookieStore;
 
@@ -814,6 +814,122 @@ describe('$kinvey', function() {
                     $kinvey.User.logout();
                     $httpBackend.flush();
                     expect($cookieStore.remove).toHaveBeenCalledWith('appkey:authToken');
+                });
+
+            });
+
+        });
+
+    });
+
+    describe('with \'local\' storage option', function() {
+
+        var $localStorage;
+
+        beforeEach(function() {
+            angular.module('test',['ngStorage']).config(function($kinveyProvider) {
+                $kinveyProvider.init({appKey: 'appkey', appSecret: 'appsecret', storage: 'local'});
+            });
+            module('kinvey', 'test');
+            inject(function($injector) {
+                $httpBackend = $injector.get('$httpBackend');
+                $localStorage = $injector.get('$localStorage');
+                $kinvey = $injector.get('$kinvey');
+            });
+        });
+
+        describe('user', function() {
+            describe('login', function() {
+
+                beforeEach(function() {
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                        .respond({
+                            username: 'badger',
+                            _id: 'goat',
+                            _kmd: {
+                                authtoken: 'authtoken'
+                            }
+                        });
+                });
+
+                afterEach(function() {
+                    $httpBackend.verifyNoOutstandingExpectation();
+                    $httpBackend.verifyNoOutstandingRequest();
+                });
+
+                it('should put the authkey into the $cookieStore', function() {
+                    $kinvey.User.login({
+                        'username':'badger',
+                        'password':'giraffe'
+                    });
+                    $httpBackend.flush();
+                    expect($localStorage['appkey:authToken']).toBe('Kinvey authtoken');
+                });
+
+            });
+
+            describe('signup', function() {
+
+                beforeEach(function() {
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/user/appkey')
+                        .respond({
+                            username: 'badger',
+                            _id: 'goat',
+                            _kmd: {
+                                authtoken: 'authtoken'
+                            }
+                        });
+                });
+
+                afterEach(function() {
+                    $httpBackend.verifyNoOutstandingExpectation();
+                    $httpBackend.verifyNoOutstandingRequest();
+                });
+
+                it('should put the authkey into the $cookieStore', function() {
+                    $kinvey.User.signup({
+                        'username':'badger',
+                        'password':'giraffe'
+                    });
+                    $httpBackend.flush();
+                    expect($localStorage['appkey:authToken']).toBe('Kinvey authtoken');
+                });
+
+            });
+
+            describe('logout', function() {
+
+                beforeEach(function() {
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/user/appkey/_logout')
+                        .respond(204);
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/user/appkey/login')
+                        .respond({
+                            username: 'badger',
+                            _id: 'goat',
+                            _kmd: {
+                                authtoken: 'authtoken'
+                            }
+                        });
+                    $kinvey.User.login({
+                        'username':'badger',
+                        'password':'giraffe'
+                    });
+                    $httpBackend.flush();
+                });
+
+                afterEach(function() {
+                    $httpBackend.verifyNoOutstandingExpectation();
+                    $httpBackend.verifyNoOutstandingRequest();
+                });
+
+                it('should delete the authkey from the $cookieStore', function() {
+                    $kinvey.User.logout();
+                    $httpBackend.flush();
+                    expect($localStorage['appkey:authToken']).toBeUndefined();
                 });
 
             });

@@ -15,6 +15,7 @@ paradigm provided by Angular.
 ## Optional Dependencies
 
 * [ngCookies 1.2.0-rc.3 or later](https://github.com/angular/bower-angular-cookies)
+* [ngStorage 0.3.0 or later](https://github.com/gsklee/ngStorage)
 
 ## Usage
 

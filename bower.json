@@ -22,6 +22,7 @@
         "angular-mocks": ">= v1.2.0-rc.3",
         "angular-cookies": ">= v1.2.0-rc.3",
         "angular-resource": ">= v1.2.0-rc.3",
-        "angular-base64": ">= v2.0.0"
+        "angular-base64": ">= v2.0.0",
+        "ngstorage": ">= 0.3.0"
     }
 }

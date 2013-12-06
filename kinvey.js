@@ -123,11 +123,24 @@
                         var storageAdapter;
                         switch(storageOption) {
                             case 'cookies':
-                                inject(['$cookieStore', function($c) {
-                                    storageAdapter = $c;
+                                inject(['$cookieStore', function($cookieStore) {
+                                    storageAdapter = $cookieStore;
                                 }]);
                                 break;
                             case 'local':
+                                inject(['$localStorage', function($localStorage) {
+                                    storageAdapter = {
+                                        get: function(key) {
+                                            return $localStorage[key];
+                                        },
+                                        put: function(key, value) {
+                                            $localStorage[key] = value;
+                                        },
+                                        remove: function(key) {
+                                            $localStorage[key] = undefined;
+                                        }
+                                    };
+                                }]);
                                 break;
                             default:
                                 var temp = {};
