@@ -32,7 +32,7 @@ describe('$kinvey', function() {
                 return result.$resolved;
             });
             runs(function() {
-                expect(result.version).toBe('3.2.4');
+                expect(result.version).toBe('3.2.12');
                 expect(result.kinvey).toBe('hello angular-kinvey');
             });
         });

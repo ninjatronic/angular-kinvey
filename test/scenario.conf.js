@@ -8,7 +8,7 @@ module.exports = function(config) {
             'bower_components/angular/angular.js',
             'bower_components/angular-cookies/angular-cookies.js',
             'bower_components/angular-resource/angular-resource.js',
-            'bower_components/ngBase64/ngBase64.js',
+            'bower_components/angular-base64/angular-base64.js',
 
             'kinvey.js',
 
