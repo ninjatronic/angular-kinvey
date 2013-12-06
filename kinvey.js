@@ -15,24 +15,25 @@
             push: 'push/'
         })
 
-        .provider('$kinvey', ['$kinveyUrlComponents', '$base64', function($kUrl, $base64) {
+        .constant('$kinveyApiVersion', 3)
 
-            var apiVersion = 3;
+        .constant('$kinveyHeaders', {
+            user: {
+                'X-Kinvey-API-Version': '',
+                'Authorization': ''
+            },
+            basic: {
+                'X-Kinvey-API-Version': '',
+                'Authorization': ''
+            }
+        })
+
+        .provider('$kinvey', ['$kinveyUrlComponents', '$kinveyHeaders', '$kinveyApiVersion', '$base64', function($kUrl, $kHead, $kVer, $base64) {
+
+            $kHead.user['X-Kinvey-API-Version'] = $kVer;
+            $kHead.basic['X-Kinvey-API-Version'] = $kVer;
+
             var appKey;
-
-            /*
-                THESE LIVE HEADER OBJECTS ARE USED FOR ALL REQUESTS TO KINVEY
-             */
-            var headers = {
-                user: {
-                    'X-Kinvey-API-Version': apiVersion,
-                    'Authorization': ''
-                },
-                basic: {
-                    'X-Kinvey-API-Version': apiVersion,
-                    'Authorization': ''
-                }
-            };
 
             return {
 
@@ -41,7 +42,7 @@
                         throw '$kinveyProvider.init requires an options object: {\'appId\':\'YOUR APP ID\',\'appSecret\':\'YOUR APP SECRET\'}';
                     }
                     appKey = options.appKey;
-                    headers.user.Authorization = headers.basic.Authorization = 'Basic '+$base64.encode(options.appKey+':'+options.appSecret);
+                    $kHead.user.Authorization = $kHead.basic.Authorization = 'Basic '+$base64.encode(options.appKey+':'+options.appSecret);
                 },
 
                 $get: ['$cookieStore', '$resource', '$http', '$q', function($cookieStore, $resource, $http, $q) {
@@ -51,7 +52,7 @@
                      */
                     var oldToken = $cookieStore.get(appKey+':authToken');
                     if(oldToken) {
-                        headers.user.Authorization = oldToken;
+                        $kHead.user.Authorization = oldToken;
                     }
 
                     /*
@@ -62,14 +63,14 @@
                             return {
                                 method: 'GET',
                                 url: $kUrl.base + $kUrl.appdata + appKey,
-                                headers: headers.basic
+                                headers: $kHead.basic
                             };
                         },
                         rpc: function(endpoint, data) {
                             return {
                                 method: 'POST',
                                 url: $kUrl.base + $kUrl.rpc + appKey + '/' + $kUrl.custom + endpoint,
-                                headers: headers.user,
+                                headers: $kHead.user,
                                 data: data
                             };
                         },
@@ -97,7 +98,7 @@
                                 url: $kUrl.base + $kUrl.blob + appKey + (file._id ? '/'+file._id : ''),
                                 headers: angular.extend({
                                     'X-Kinvey-Content-Type': mimeType
-                                }, headers.user),
+                                }, $kHead.user),
                                 data: file
                             };
                         }
@@ -353,7 +354,7 @@
                                         transformResponse: function(data) {
                                             return new (Object(className))(angular.fromJson(data));
                                         },
-                                        headers: headers.user,
+                                        headers: $kHead.user,
                                         params: {
                                             _id: ''
                                         }
@@ -363,11 +364,11 @@
                                         transformResponse: function(data) {
                                             return new (Object(className))(angular.fromJson(data));
                                         },
-                                        headers: headers.user
+                                        headers: $kHead.user
                                     },
                                     count: {
                                         method: 'GET',
-                                        headers: headers.user,
+                                        headers: $kHead.user,
                                         params: {
                                             _id: '_count'
                                         }
@@ -377,11 +378,11 @@
                                         transformResponse: function(data) {
                                             return new (Object(className))(angular.fromJson(data));
                                         },
-                                        headers: headers.user
+                                        headers: $kHead.user
                                     },
                                     delete: {
                                         method: 'DELETE',
-                                        headers: headers.user
+                                        headers: $kHead.user
                                     },
                                     query: {
                                         method: 'GET',
@@ -393,7 +394,7 @@
                                             });
                                             return retVal;
                                         },
-                                        headers: headers.user,
+                                        headers: $kHead.user,
                                         isArray: true,
                                         params: {
                                             _id: ''
@@ -401,7 +402,7 @@
                                     },
                                     group: {
                                         method: 'POST',
-                                        headers: headers.user,
+                                        headers: $kHead.user,
                                         isArray: true,
                                         params: {
                                             _id: '_group'
@@ -425,12 +426,12 @@
                                     transformResponse: function(data) {
                                         data = angular.fromJson(data);
                                         if(!data.error) {
-                                            headers.user.Authorization = 'Kinvey '+data._kmd.authtoken;
+                                            $kHead.user.Authorization = 'Kinvey '+data._kmd.authtoken;
                                             $cookieStore.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
                                         }
                                         return new User(data);
                                     },
-                                    headers: headers.user
+                                    headers: $kHead.user
                                 },
                                 current: {
                                     method: 'GET',
@@ -440,7 +441,7 @@
                                     transformResponse: function(data) {
                                         return new User(angular.fromJson(data));
                                     },
-                                    headers: headers.user
+                                    headers: $kHead.user
                                 },
                                 logout: {
                                     method: 'POST',
@@ -448,19 +449,19 @@
                                         _id: '_logout'
                                     },
                                     transformResponse: function() {
-                                        headers.user.Authorization = headers.basic.Authorization;
+                                        $kHead.user.Authorization = $kHead.basic.Authorization;
                                         $cookieStore.remove(appKey+':authToken');
                                     },
-                                    headers: headers.user
+                                    headers: $kHead.user
                                 },
                                 signup: {
                                     method: 'POST',
-                                    headers: headers.basic,
+                                    headers: $kHead.basic,
                                     transformResponse: function(data) {
 
                                         data = angular.fromJson(data);
                                         if(!data.error) {
-                                            headers.user.Authorization = 'Kinvey '+data._kmd.authtoken;
+                                            $kHead.user.Authorization = 'Kinvey '+data._kmd.authtoken;
                                             $cookieStore.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
                                         }
                                         return new User(data);
@@ -471,7 +472,7 @@
                                     transformResponse: function(data) {
                                         return new User(angular.fromJson(data));
                                     },
-                                    headers: headers.user
+                                    headers: $kHead.user
                                 },
                                 lookup: {
                                     method: 'POST',
@@ -483,7 +484,7 @@
                                         });
                                         return retVal;
                                     },
-                                    headers: headers.user,
+                                    headers: $kHead.user,
                                     isArray:true,
                                     params: {
                                         _id: '_lookup'
@@ -494,7 +495,7 @@
                                     transformResponse: function(data) {
                                         return new User(angular.fromJson(data));
                                     },
-                                    headers: headers.user
+                                    headers: $kHead.user
                                 },
                                 query:  {
                                     method:'GET',
@@ -506,7 +507,7 @@
                                         });
                                         return retVal;
                                     },
-                                    headers: headers.user,
+                                    headers: $kHead.user,
                                     isArray:true,
                                     params: {
                                         _id: ''
@@ -517,15 +518,15 @@
                                     params: {
                                         hard: true
                                     },
-                                    headers: headers.user
+                                    headers: $kHead.user
                                 },
                                 suspend: {
                                     method:'DELETE',
-                                    headers: headers.user
+                                    headers: $kHead.user
                                 },
                                 verifyEmail: {
                                     method: 'POST',
-                                    headers: headers.basic,
+                                    headers: $kHead.basic,
                                     url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-email-verification-initiate',
                                     params: {
                                         username: '@username',
@@ -537,7 +538,7 @@
                                 },
                                 resetPassword: {
                                     method: 'POST',
-                                    headers: headers.basic,
+                                    headers: $kHead.basic,
                                     url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-password-reset-initiate',
                                     params: {
                                         username: '@username',
@@ -549,7 +550,7 @@
                                 },
                                 checkUsernameExists: {
                                     method: 'POST',
-                                    headers: headers.basic,
+                                    headers: $kHead.basic,
                                     url: $kUrl.base+$kUrl.rpc+appKey+'/check-username-exists'
                                 }
                             }));
@@ -559,15 +560,15 @@
                             $resource($kUrl.base + $kUrl.group + appKey + '/:_id', {_id: '@_id'}, {
                         get: {
                             method: 'GET',
-                            headers: headers.user
+                            headers: $kHead.user
                         },
                         save: {
                             method: 'PUT',
-                            headers: headers.user
+                            headers: $kHead.user
                         },
                         delete: {
                             method: 'DELETE',
-                            headers: headers.user
+                            headers: $kHead.user
                         }
                     });
 
@@ -578,14 +579,14 @@
                                 $resource($kUrl.base + $kUrl.blob + appKey + '/:_id', {_id: '@_id'}, {
                         get: {
                             method: 'GET',
-                            headers: headers.user,
+                            headers: $kHead.user,
                             transformResponse: function(data) {
                                 return new File(angular.fromJson(data));
                             }
                         },
                         query:  {
                             method:'GET',
-                            headers: headers.user,
+                            headers: $kHead.user,
                             isArray:true,
                             params: {
                                 _id: ''
@@ -600,21 +601,21 @@
                         },
                         delete: {
                             method:'DELETE',
-                            headers: headers.user
+                            headers: $kHead.user
                         }
                     })));
 
                     var Push = $resource($kUrl.base + $kUrl.push + appKey + '/:verb', {verb: '@verb'}, {
                         register: {
                             method: 'POST',
-                            headers: headers.user,
+                            headers: $kHead.user,
                             params: {
                                 verb: 'register-device'
                             }
                         },
                         unregister: {
                             method: 'POST',
-                            headers: headers.user,
+                            headers: $kHead.user,
                             params: {
                                 verb: 'unregister-device'
                             }
