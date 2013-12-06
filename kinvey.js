@@ -4,22 +4,21 @@
     angular
         .module('kinvey', ['ngResource', 'ngCookies', 'base64'])
 
-        .provider('$kinvey', ['$base64', function($base64) {
+        .constant('$kinveyUrlComponents', {
+            base: 'https://baas.kinvey.com/',
+            appdata: 'appdata/',
+            user: 'user/',
+            group: 'group/',
+            rpc: 'rpc/',
+            custom: 'custom/',
+            blob: 'blob/',
+            push: 'push/'
+        })
+
+        .provider('$kinvey', ['$kinveyUrlComponents', '$base64', function($kUrl, $base64) {
 
             var apiVersion = 3;
             var appKey;
-
-            /*
-                URL BUILDING STRINGS
-             */
-            var baseUrl = 'https://baas.kinvey.com/';
-            var appdata = 'appdata/';
-            var userdata = 'user/';
-            var groupdata = 'group/';
-            var rpcdata = 'rpc/';
-            var customdata = 'custom/';
-            var blobdata = 'blob/';
-            var pushdata = 'push/';
 
             /*
                 THESE LIVE HEADER OBJECTS ARE USED FOR ALL REQUESTS TO KINVEY
@@ -62,14 +61,14 @@
                         handshake: function() {
                             return {
                                 method: 'GET',
-                                url: baseUrl + appdata + appKey,
+                                url: $kUrl.base + $kUrl.appdata + appKey,
                                 headers: headers.basic
                             };
                         },
                         rpc: function(endpoint, data) {
                             return {
                                 method: 'POST',
-                                url: baseUrl + rpcdata + appKey + '/' + customdata + endpoint,
+                                url: $kUrl.base + $kUrl.rpc + appKey + '/' + $kUrl.custom + endpoint,
                                 headers: headers.user,
                                 data: data
                             };
@@ -95,7 +94,7 @@
                         saveFile: function(file, mimeType) {
                             return {
                                 method: file._id ? 'PUT' : 'POST',
-                                url: baseUrl + blobdata + appKey + (file._id ? '/'+file._id : ''),
+                                url: $kUrl.base + $kUrl.blob + appKey + (file._id ? '/'+file._id : ''),
                                 headers: angular.extend({
                                     'X-Kinvey-Content-Type': mimeType
                                 }, headers.user),
@@ -348,7 +347,7 @@
                     var Object = function(className) {
                         return augmentObjectDef(
                             augmentForMongo(
-                                $resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
+                                $resource($kUrl.base + $kUrl.appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
                                     create: {
                                         method: 'POST',
                                         transformResponse: function(data) {
@@ -417,7 +416,7 @@
                     // User `$resource` definition
                     var User =
                         augmentForMongo(
-                            $resource(baseUrl + userdata + appKey + '/:_id', {_id: '@_id'} ,{
+                            $resource($kUrl.base + $kUrl.user + appKey + '/:_id', {_id: '@_id'} ,{
                                 login: {
                                     method: 'POST',
                                     params: {
@@ -527,7 +526,7 @@
                                 verifyEmail: {
                                     method: 'POST',
                                     headers: headers.basic,
-                                    url: baseUrl+rpcdata+appKey+'/:username:email/user-email-verification-initiate',
+                                    url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-email-verification-initiate',
                                     params: {
                                         username: '@username',
                                         email: '@email'
@@ -539,7 +538,7 @@
                                 resetPassword: {
                                     method: 'POST',
                                     headers: headers.basic,
-                                    url: baseUrl+rpcdata+appKey+'/:username:email/user-password-reset-initiate',
+                                    url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-password-reset-initiate',
                                     params: {
                                         username: '@username',
                                         email: '@email'
@@ -551,13 +550,13 @@
                                 checkUsernameExists: {
                                     method: 'POST',
                                     headers: headers.basic,
-                                    url: baseUrl+rpcdata+appKey+'/check-username-exists'
+                                    url: $kUrl.base+$kUrl.rpc+appKey+'/check-username-exists'
                                 }
                             }));
 
                     // Group `$resource` definition
                     var Group =
-                            $resource(baseUrl + groupdata + appKey + '/:_id', {_id: '@_id'}, {
+                            $resource($kUrl.base + $kUrl.group + appKey + '/:_id', {_id: '@_id'}, {
                         get: {
                             method: 'GET',
                             headers: headers.user
@@ -576,7 +575,7 @@
                     var File =
                         augmentFileDef(
                             augmentForMongo(
-                                $resource(baseUrl + blobdata + appKey + '/:_id', {_id: '@_id'}, {
+                                $resource($kUrl.base + $kUrl.blob + appKey + '/:_id', {_id: '@_id'}, {
                         get: {
                             method: 'GET',
                             headers: headers.user,
@@ -605,7 +604,7 @@
                         }
                     })));
 
-                    var Push = $resource(baseUrl + pushdata + appKey + '/:verb', {verb: '@verb'}, {
+                    var Push = $resource($kUrl.base + $kUrl.push + appKey + '/:verb', {verb: '@verb'}, {
                         register: {
                             method: 'POST',
                             headers: headers.user,
