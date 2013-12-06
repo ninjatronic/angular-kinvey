@@ -1,6 +1,7 @@
 # angular-kinvey
 
 [![Build Status](https://travis-ci.org/ninjatronic/angular-kinvey.png)](https://travis-ci.org/ninjatronic/angular-kinvey)
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=ninjatronic&url=https://github.com/ninjatronic/angular-kinvey/&title=angular-kinvey&language=&tags=github&category=software) 
 
 **angular-kinvey** aims to provide easy-to-consume support for BaaS services provided by [Kinvey](http://kinvey.com/).
 This API allows an AngularJS app to interact with its backend on Kinvey programatically using the `$resource` 
@@ -30,6 +31,8 @@ and large parts of this documentation have been copied verbatim and then altered
 If you have found this project useful you can encourage the developers by...
 
 * [Voting for us on ngModules](http://ngmodules.org/modules/angular-kinvey)
+* [Like us on Facebook](https://www.facebook.com/ninjatronic)
+* [Flattr us](https://flattr.com/submit/auto?user_id=ninjatronic&url=https://github.com/ninjatronic/angular-kinvey/&title=angular-kinvey&language=&tags=github&category=software)
 
 ## Contribution
 
