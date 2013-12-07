@@ -76,11 +76,13 @@ describe('$kinvey', function() {
 
         xdescribe('save', function() {
 
+
             it('should be defined', function() {
-                expect($kinvey.Object('classname').save).toBeDefined();
+                expect($kinvey.TestObject.save).toBeDefined();
             });
 
             beforeEach(function() {
+                $kinvey.alias('classname', 'TestObject');
                 $httpBackend
                     .when('PUT', 'https://baas.kinvey.com/appdata/appkey/classname/_id')
                     .respond({
@@ -119,12 +121,12 @@ describe('$kinvey', function() {
                     "Accept":"application/json, text/plain, */*",
                     "Content-Type":"application/json;charset=utf-8"
                 });
-                $kinvey.Object('classname').save({_id: '_id', description: 'giraffe'});
+                $kinvey.TestObject.save({_id: '_id', description: 'giraffe'});
                 $httpBackend.flush();
             });
 
             it('should return an appropriate resource object', function() {
-                var object = $kinvey.Object('classname').save({_id: '_id', description: 'giraffe'});
+                var object = $kinvey.TestObject.save({_id: '_id', description: 'giraffe'});
                 $httpBackend.flush();
                 expect(object.anotherField).toBe('dolphin');
             });

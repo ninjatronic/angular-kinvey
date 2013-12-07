@@ -281,13 +281,13 @@
                     }
 
                     // augments the Object `$resource` definition
-                    function augmentObjectDef(resourceDef) {
+                    function augmentObjectDef(className, resourceDef) {
 
                         resourceDef.save = function(obj) {
                             if(obj._id) {
-                                return Object.update(obj);
+                                return Object(className).update(obj);
                             } else {
-                                return Object.create(obj);
+                                return Object(className).create(obj);
                             }
                         };
 
@@ -345,7 +345,7 @@
 
                     // Object `$resource` definition factory
                     var Object = function(className) {
-                        return augmentObjectDef(
+                        return augmentObjectDef(className,
                             augmentForMongo(
                                 $resource(baseUrl + appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
                                     create: {
