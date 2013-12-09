@@ -525,7 +525,11 @@
                                 },
                                 verifyEmail: {
                                     method: 'POST',
-                                    headers: headers.basic,
+                                    headers: {
+                                        Authorization: headers.user.Authorization,
+                                        'X-Kinvey-API-Version': headers.user['X-Kinvey-API-Version'],
+                                        'Content-Type': undefined
+                                    },
                                     url: baseUrl+rpcdata+appKey+'/:username:email/user-email-verification-initiate',
                                     params: {
                                         username: '@username',

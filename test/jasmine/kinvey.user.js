@@ -580,8 +580,7 @@ describe('$kinvey', function() {
                 $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/username/user-email-verification-initiate?', undefined, {
                     "X-Kinvey-API-Version":3,
                     "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
-                    "Accept":"application/json, text/plain, */*",
-                    "Content-Type":"application/json;charset=utf-8"
+                    "Accept":"application/json, text/plain, */*"
                 });
                 $kinvey.User.verifyEmail({username: 'username'});
                 $httpBackend.flush();
@@ -591,8 +590,7 @@ describe('$kinvey', function() {
                 $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/email/user-email-verification-initiate?', undefined, {
                     "X-Kinvey-API-Version":3,
                     "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
-                    "Accept":"application/json, text/plain, */*",
-                    "Content-Type":"application/json;charset=utf-8"
+                    "Accept":"application/json, text/plain, */*"
                 });
                 $kinvey.User.verifyEmail({email: 'email'});
                 $httpBackend.flush();
