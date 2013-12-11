@@ -584,7 +584,11 @@
                                     },
                                     verifyEmail: {
                                         method: 'POST',
-                                        headers: $kHead.basic,
+                                        headers: {
+                                            Authorization: $kHead.basic.Authorization,
+                                            'X-Kinvey-API-Version': $kHead.basic['X-Kinvey-API-Version'],
+                                            'Content-Type': undefined
+                                        },
                                         url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-email-verification-initiate',
                                         params: {
                                             username: '@username',
