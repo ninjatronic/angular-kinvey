@@ -311,6 +311,15 @@
                                 }, file);
                             };
 
+                            resourceDef.prototype.$reference = function() {
+                                if(this._id) {
+                                    return {
+                                        _type: 'KinveyFile',
+                                        _id: this._id
+                                    };
+                                }
+                            };
+
                             resourceDef.upload = function(file, filedata, mimeType) {
                                 return augmentPromise(function(retVal, deferred) {
                                     $http(funcDefs.upload(file, filedata, mimeType))

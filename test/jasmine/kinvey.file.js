@@ -41,6 +41,31 @@ describe('$kinvey', function() {
             expect($kinvey.File).toBeDefined();
         });
 
+        describe('$reference', function() {
+            var file;
+
+            beforeEach(function() {
+                file = new $kinvey.File();
+            });
+
+            it('should be $defined', function() {
+                expect(file.$reference).toBeDefined();
+            });
+
+            it('should return undefined when no \'_id\' is present', function() {
+                delete file._id;
+                expect(file.$reference()).toBeUndefined();
+            });
+
+            it('should return a user reference when an \'_id\' is present', function() {
+                file._id = 'badger';
+                expect(file.$reference()._type).toBe('KinveyFile');
+                expect(file.$reference()._collection).toBeUndefined();
+                expect(file.$reference()._id).toBe('badger');
+            });
+
+        });
+
         describe('$save', function() {
             var fileObj;
 
