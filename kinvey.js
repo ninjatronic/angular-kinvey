@@ -370,7 +370,7 @@
                                 if(this._id) {
                                     return {
                                         _type: 'KinveyRef',
-                                        _collection: 'user',
+                                        _collection: classname,
                                         _id: this._id
                                     };
                                 }
@@ -418,72 +418,73 @@
 
                         // Object `$resource` definition factory
                         var Object = function(className) {
-                            return augmentObjectDef(className,
-                                augmentForMongo(
-                                    $resource($kUrl.base + $kUrl.appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
-                                        create: {
-                                            method: 'POST',
-                                            transformResponse: function(data) {
-                                                return new (Object(className))(angular.fromJson(data));
+                            return augmentReference(className,
+                                augmentObjectDef(className,
+                                    augmentForMongo(
+                                        $resource($kUrl.base + $kUrl.appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
+                                            create: {
+                                                method: 'POST',
+                                                transformResponse: function(data) {
+                                                    return new (Object(className))(angular.fromJson(data));
+                                                },
+                                                headers: $kHead.user,
+                                                params: {
+                                                    _id: ''
+                                                }
                                             },
-                                            headers: $kHead.user,
-                                            params: {
-                                                _id: ''
+                                            get: {
+                                                method: 'GET',
+                                                transformResponse: function(data) {
+                                                    return new (Object(className))(angular.fromJson(data));
+                                                },
+                                                headers: $kHead.user
+                                            },
+                                            count: {
+                                                method: 'GET',
+                                                headers: $kHead.user,
+                                                params: {
+                                                    _id: '_count'
+                                                }
+                                            },
+                                            update: {
+                                                method: 'PUT',
+                                                transformResponse: function(data) {
+                                                    return new (Object(className))(angular.fromJson(data));
+                                                },
+                                                headers: $kHead.user
+                                            },
+                                            delete: {
+                                                method: 'DELETE',
+                                                headers: $kHead.user
+                                            },
+                                            query: {
+                                                method: 'GET',
+                                                transformResponse: function(data) {
+                                                    var retVal = [];
+                                                    var objs = angular.fromJson(data);
+                                                    angular.forEach(objs, function(obj) {
+                                                        retVal.push(new (Object(className))(obj));
+                                                    });
+                                                    return retVal;
+                                                },
+                                                headers: $kHead.user,
+                                                isArray: true,
+                                                params: {
+                                                    _id: ''
+                                                }
+                                            },
+                                            group: {
+                                                method: 'POST',
+                                                headers: $kHead.user,
+                                                isArray: true,
+                                                params: {
+                                                    _id: '_group'
+                                                },
+                                                transformRequest: function(data) {
+                                                    return $kSerialize(data);
+                                                }
                                             }
-                                        },
-                                        get: {
-                                            method: 'GET',
-                                            transformResponse: function(data) {
-                                                return new (Object(className))(angular.fromJson(data));
-                                            },
-                                            headers: $kHead.user
-                                        },
-                                        count: {
-                                            method: 'GET',
-                                            headers: $kHead.user,
-                                            params: {
-                                                _id: '_count'
-                                            }
-                                        },
-                                        update: {
-                                            method: 'PUT',
-                                            transformResponse: function(data) {
-                                                return new (Object(className))(angular.fromJson(data));
-                                            },
-                                            headers: $kHead.user
-                                        },
-                                        delete: {
-                                            method: 'DELETE',
-                                            headers: $kHead.user
-                                        },
-                                        query: {
-                                            method: 'GET',
-                                            transformResponse: function(data) {
-                                                var retVal = [];
-                                                var objs = angular.fromJson(data);
-                                                angular.forEach(objs, function(obj) {
-                                                    retVal.push(new (Object(className))(obj));
-                                                });
-                                                return retVal;
-                                            },
-                                            headers: $kHead.user,
-                                            isArray: true,
-                                            params: {
-                                                _id: ''
-                                            }
-                                        },
-                                        group: {
-                                            method: 'POST',
-                                            headers: $kHead.user,
-                                            isArray: true,
-                                            params: {
-                                                _id: '_group'
-                                            },
-                                            transformRequest: function(data) {
-                                                return $kSerialize(data);
-                                            }
-                                        }
-                                    })));
+                                        }))));
                         };
 
                         // User `$resource` definition

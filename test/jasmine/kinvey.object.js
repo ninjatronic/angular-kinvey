@@ -19,6 +19,32 @@ describe('$kinvey', function() {
             expect($kinvey.Object).toBeDefined();
         });
 
+        describe('$reference', function() {
+            var object;
+
+            beforeEach(function() {
+                $kinvey.alias('classname', 'Classdef');
+                object = new $kinvey.Classdef();
+            });
+
+            it('should be $defined', function() {
+                expect(object.$reference).toBeDefined();
+            });
+
+            it('should return undefined when no \'_id\' is present', function() {
+                delete object._id;
+                expect(object.$reference()).toBeUndefined();
+            });
+
+            it('should return a user reference when an \'_id\' is present', function() {
+                object._id = 'badger';
+                expect(object.$reference()._type).toBe('KinveyRef');
+                expect(object.$reference()._collection).toBe('classname');
+                expect(object.$reference()._id).toBe('badger');
+            });
+
+        });
+
         describe('save', function() {
             var object;
 
