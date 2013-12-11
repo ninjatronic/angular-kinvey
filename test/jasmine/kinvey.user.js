@@ -501,7 +501,7 @@ describe('$kinvey', function() {
 
             beforeEach(function() {
                 $httpBackend
-                    .when('GET', 'https://baas.kinvey.com/user/appkey')
+                    .when('GET', 'https://baas.kinvey.com/user/appkey/?query=%7B%22age%22:2%7D&')
                     .respond(expected);
                 $httpBackend
                     .when('POST', 'https://baas.kinvey.com/user/appkey/login')
@@ -523,17 +523,17 @@ describe('$kinvey', function() {
             });
 
             it('should make a GET request to ../', function() {
-                $httpBackend.expectGET('https://baas.kinvey.com/user/appkey', {
+                $httpBackend.expectGET('https://baas.kinvey.com/user/appkey/?query=%7B%22age%22:2%7D&', {
                     'Accept':'application/json, text/plain, */*',
                     'X-Kinvey-API-Version':3,
                     'Authorization':'Kinvey authtoken'
                 });
-                $kinvey.User.query();
+                $kinvey.User.query({query: {age: 2}});
                 $httpBackend.flush();
             });
 
             it('should return appropriate resource objects', function() {
-                var result = $kinvey.User.query();
+                var result = $kinvey.User.query({query: {age: 2}});
                 $httpBackend.flush();
                 expect(result.length).toBe(2);
                 expect(result[0]._id).toBe(expected[0]._id);

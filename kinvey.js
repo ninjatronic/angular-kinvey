@@ -210,13 +210,13 @@
                             };
                         });
                         var origGroup = resourceDef.group;
-                        resourceDef.group = function(a1) {
+                        resourceDef.group = function(a1, a2, a3) {
                             if(a1.reduce) {
                                 a1.reduce = a1.reduce.toString();
                                 a1.reduce = a1.reduce.replace(/\n/g,'');
                                 a1.reduce = a1.reduce.replace(/\s/g,'');
                             }
-                            return origGroup(a1);
+                            return origGroup(undefined, a1, a2, a3);
                         };
                         return resourceDef;
                     }
@@ -497,6 +497,7 @@
                                     headers: headers.user
                                 },
                                 query:  {
+                                    url: baseUrl + userdata + appKey + '/?query=:query',
                                     method:'GET',
                                     transformResponse: function(data) {
                                         var retVal = [];
@@ -508,9 +509,7 @@
                                     },
                                     headers: headers.user,
                                     isArray:true,
-                                    params: {
-                                        _id: ''
-                                    }
+                                    params: {}
                                 },
                                 delete: {
                                     method:'DELETE',
