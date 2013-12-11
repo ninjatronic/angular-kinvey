@@ -364,6 +364,20 @@
                             return resourceDef;
                         }
 
+                        // augments a resource definition to provide a $reference instance-level method
+                        function augmentReference(classname, resourceDef) {
+                            resourceDef.prototype.$reference = function() {
+                                if(this._id) {
+                                    return {
+                                        _type: 'KinveyRef',
+                                        _collection: 'user',
+                                        _id: this._id
+                                    };
+                                }
+                            };
+                            return resourceDef;
+                        }
+
                         // gets the data component of a `$http` response object
                         function getData(response) {
                             return response.data;
@@ -474,147 +488,148 @@
 
                         // User `$resource` definition
                         var User =
-                            augmentForMongo(
-                                $resource($kUrl.base + $kUrl.user + appKey + '/:_id', {_id: '@_id'} ,{
-                                    login: {
-                                        method: 'POST',
-                                        params: {
-                                            _id: 'login'
+                            augmentReference('user',
+                                augmentForMongo(
+                                    $resource($kUrl.base + $kUrl.user + appKey + '/:_id', {_id: '@_id'} ,{
+                                        login: {
+                                            method: 'POST',
+                                            params: {
+                                                _id: 'login'
+                                            },
+                                            transformResponse: function(data) {
+                                                data = angular.fromJson(data);
+                                                if(!data.error) {
+                                                    $kHead.user.Authorization = 'Kinvey '+data._kmd.authtoken;
+                                                    storageAdapter.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
+                                                }
+                                                return new User(data);
+                                            },
+                                            headers: $kHead.user
                                         },
-                                        transformResponse: function(data) {
-                                            data = angular.fromJson(data);
-                                            if(!data.error) {
-                                                $kHead.user.Authorization = 'Kinvey '+data._kmd.authtoken;
-                                                storageAdapter.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
-                                            }
-                                            return new User(data);
+                                        current: {
+                                            method: 'GET',
+                                            params: {
+                                                _id: '_me'
+                                            },
+                                            transformResponse: function(data) {
+                                                return new User(angular.fromJson(data));
+                                            },
+                                            headers: $kHead.user
                                         },
-                                        headers: $kHead.user
-                                    },
-                                    current: {
-                                        method: 'GET',
-                                        params: {
-                                            _id: '_me'
+                                        logout: {
+                                            method: 'POST',
+                                            params: {
+                                                _id: '_logout'
+                                            },
+                                            transformResponse: function() {
+                                                $kHead.user.Authorization = $kHead.basic.Authorization;
+                                                storageAdapter.remove(appKey+':authToken');
+                                            },
+                                            headers: $kHead.user
                                         },
-                                        transformResponse: function(data) {
-                                            return new User(angular.fromJson(data));
-                                        },
-                                        headers: $kHead.user
-                                    },
-                                    logout: {
-                                        method: 'POST',
-                                        params: {
-                                            _id: '_logout'
-                                        },
-                                        transformResponse: function() {
-                                            $kHead.user.Authorization = $kHead.basic.Authorization;
-                                            storageAdapter.remove(appKey+':authToken');
-                                        },
-                                        headers: $kHead.user
-                                    },
-                                    signup: {
-                                        method: 'POST',
-                                        headers: $kHead.basic,
-                                        transformResponse: function(data) {
+                                        signup: {
+                                            method: 'POST',
+                                            headers: $kHead.basic,
+                                            transformResponse: function(data) {
 
-                                            data = angular.fromJson(data);
-                                            if(!data.error) {
-                                                $kHead.user.Authorization = 'Kinvey '+data._kmd.authtoken;
-                                                storageAdapter.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
+                                                data = angular.fromJson(data);
+                                                if(!data.error) {
+                                                    $kHead.user.Authorization = 'Kinvey '+data._kmd.authtoken;
+                                                    storageAdapter.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
+                                                }
+                                                return new User(data);
                                             }
-                                            return new User(data);
+                                        },
+                                        get: {
+                                            method: 'GET',
+                                            transformResponse: function(data) {
+                                                return new User(angular.fromJson(data));
+                                            },
+                                            headers: $kHead.user
+                                        },
+                                        lookup: {
+                                            method: 'POST',
+                                            transformResponse: function(data) {
+                                                var retVal = [];
+                                                data = angular.fromJson(data);
+                                                angular.forEach(data, function(user) {
+                                                    retVal.push(new User(user));
+                                                });
+                                                return retVal;
+                                            },
+                                            headers: $kHead.user,
+                                            isArray:true,
+                                            params: {
+                                                _id: '_lookup'
+                                            }
+                                        },
+                                        save:   {
+                                            method:'PUT',
+                                            transformResponse: function(data) {
+                                                return new User(angular.fromJson(data));
+                                            },
+                                            headers: $kHead.user
+                                        },
+                                        query:  {
+                                            url: $kUrl.base + $kUrl.user + appKey + '/?query=:query',
+                                            method:'GET',
+                                            transformResponse: function(data) {
+                                                var retVal = [];
+                                                data = angular.fromJson(data);
+                                                angular.forEach(data, function(user) {
+                                                    retVal.push(new User(user));
+                                                });
+                                                return retVal;
+                                            },
+                                            headers: $kHead.user,
+                                            isArray:true,
+                                            params: { }
+                                        },
+                                        delete: {
+                                            method:'DELETE',
+                                            params: {
+                                                hard: true
+                                            },
+                                            headers: $kHead.user
+                                        },
+                                        suspend: {
+                                            method:'DELETE',
+                                            headers: $kHead.user
+                                        },
+                                        verifyEmail: {
+                                            method: 'POST',
+                                            headers: {
+                                                Authorization: $kHead.basic.Authorization,
+                                                'X-Kinvey-API-Version': $kHead.basic['X-Kinvey-API-Version'],
+                                                'Content-Type': undefined
+                                            },
+                                            url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-email-verification-initiate',
+                                            params: {
+                                                username: '@username',
+                                                email: '@email'
+                                            },
+                                            transformRequest: function() {
+                                                return '';
+                                            }
+                                        },
+                                        resetPassword: {
+                                            method: 'POST',
+                                            headers: $kHead.basic,
+                                            url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-password-reset-initiate',
+                                            params: {
+                                                username: '@username',
+                                                email: '@email'
+                                            },
+                                            transformRequest: function() {
+                                                return '';
+                                            }
+                                        },
+                                        checkUsernameExists: {
+                                            method: 'POST',
+                                            headers: $kHead.basic,
+                                            url: $kUrl.base+$kUrl.rpc+appKey+'/check-username-exists'
                                         }
-                                    },
-                                    get: {
-                                        method: 'GET',
-                                        transformResponse: function(data) {
-                                            return new User(angular.fromJson(data));
-                                        },
-                                        headers: $kHead.user
-                                    },
-                                    lookup: {
-                                        method: 'POST',
-                                        transformResponse: function(data) {
-                                            var retVal = [];
-                                            data = angular.fromJson(data);
-                                            angular.forEach(data, function(user) {
-                                                retVal.push(new User(user));
-                                            });
-                                            return retVal;
-                                        },
-                                        headers: $kHead.user,
-                                        isArray:true,
-                                        params: {
-                                            _id: '_lookup'
-                                        }
-                                    },
-                                    save:   {
-                                        method:'PUT',
-                                        transformResponse: function(data) {
-                                            return new User(angular.fromJson(data));
-                                        },
-                                        headers: $kHead.user
-                                    },
-                                    query:  {
-                                        url: $kUrl.base + $kUrl.user + appKey + '/?query=:query',
-                                        method:'GET',
-                                        transformResponse: function(data) {
-                                            var retVal = [];
-                                            data = angular.fromJson(data);
-                                            angular.forEach(data, function(user) {
-                                                retVal.push(new User(user));
-                                            });
-                                            return retVal;
-                                        },
-                                        headers: $kHead.user,
-                                        isArray:true,
-                                        params: { }
-                                    },
-                                    delete: {
-                                        method:'DELETE',
-                                        params: {
-                                            hard: true
-                                        },
-                                        headers: $kHead.user
-                                    },
-                                    suspend: {
-                                        method:'DELETE',
-                                        headers: $kHead.user
-                                    },
-                                    verifyEmail: {
-                                        method: 'POST',
-                                        headers: {
-                                            Authorization: $kHead.basic.Authorization,
-                                            'X-Kinvey-API-Version': $kHead.basic['X-Kinvey-API-Version'],
-                                            'Content-Type': undefined
-                                        },
-                                        url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-email-verification-initiate',
-                                        params: {
-                                            username: '@username',
-                                            email: '@email'
-                                        },
-                                        transformRequest: function() {
-                                            return '';
-                                        }
-                                    },
-                                    resetPassword: {
-                                        method: 'POST',
-                                        headers: $kHead.basic,
-                                        url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-password-reset-initiate',
-                                        params: {
-                                            username: '@username',
-                                            email: '@email'
-                                        },
-                                        transformRequest: function() {
-                                            return '';
-                                        }
-                                    },
-                                    checkUsernameExists: {
-                                        method: 'POST',
-                                        headers: $kHead.basic,
-                                        url: $kUrl.base+$kUrl.rpc+appKey+'/check-username-exists'
-                                    }
-                                }));
+                                    })));
 
                         // Group `$resource` definition
                         var Group =

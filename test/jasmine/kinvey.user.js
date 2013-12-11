@@ -21,6 +21,31 @@ describe('$kinvey', function() {
                 expect($kinvey.User).toBeDefined();
             });
 
+            describe('$reference', function() {
+                var user;
+
+                beforeEach(function() {
+                    user = new $kinvey.User();
+                });
+
+                it('should be $defined', function() {
+                    expect(user.$reference).toBeDefined();
+                });
+
+                it('should return undefined when no \'_id\' is present', function() {
+                    delete user._id;
+                    expect(user.$reference()).toBeUndefined();
+                });
+
+                it('should return a user reference when an \'_id\' is present', function() {
+                    user._id = 'badger';
+                    expect(user.$reference()._type).toBe('KinveyRef');
+                    expect(user.$reference()._collection).toBe('user');
+                    expect(user.$reference()._id).toBe('badger');
+                });
+
+            });
+
             describe('login', function() {
 
                 beforeEach(function() {
