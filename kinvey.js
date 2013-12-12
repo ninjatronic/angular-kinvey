@@ -304,11 +304,20 @@
                             resourceDef.prototype.$save = function(mimeType) {
                                 var file = this;
                                 return augmentPromise(function(retVal, deferred) {
-                                    $http(funcDefs.saveFile(file, mimeType))
+                                    $http(funcDefs.saveFile(flatten(file), mimeType))
                                         .then(
                                             augmentResolve(retVal, deferred, getFile),
                                             augmentReject(deferred, getData));
                                 }, file);
+                            };
+
+                            resourceDef.prototype.$reference = function() {
+                                if(this._id) {
+                                    return {
+                                        _type: 'KinveyFile',
+                                        _id: this._id
+                                    };
+                                }
                             };
 
                             resourceDef.upload = function(file, filedata, mimeType) {
@@ -329,7 +338,7 @@
                             };
                             resourceDef.save = function(file, mimeType) {
                                 return augmentPromise(function(retVal, deferred) {
-                                    $http(funcDefs.saveFile(file, mimeType))
+                                    $http(funcDefs.saveFile(flatten(file), mimeType))
                                         .then(
                                             augmentResolve(retVal, deferred, getFile),
                                             augmentReject(deferred, getData));
@@ -361,6 +370,20 @@
                                 }
                             };
 
+                            return resourceDef;
+                        }
+
+                        // augments a resource definition to provide a $reference instance-level method
+                        function augmentReference(classname, resourceDef) {
+                            resourceDef.prototype.$reference = function() {
+                                if(this._id) {
+                                    return {
+                                        _type: 'KinveyRef',
+                                        _collection: classname,
+                                        _id: this._id
+                                    };
+                                }
+                            };
                             return resourceDef;
                         }
 
@@ -399,222 +422,259 @@
                         }
 
                         /*
+                            DEALS WITH AUTOMATIC REFERENCE RESOLUTION AS PART OF SERIALIZATION
+                         */
+                        function flatten(src) {
+                            var dst = {};
+                            dst = angular.copy(src);
+                            angular.forEach(dst, function(value, key) {
+                                if(typeof(value) === 'object') {
+                                    if(('$reference' in value) && (typeof(value.$reference) === 'function')) {
+                                        dst[key] = value.$reference();
+                                    } else {
+                                        dst[key] = flatten(value);
+                                    }
+                                }
+                            });
+                            return dst;
+                        }
+
+                        /*
                             HERE BE `$resource` DEFINITIONS AND FACTORIES
                          */
 
                         // Object `$resource` definition factory
                         var Object = function(className) {
-                            return augmentObjectDef(className,
-                                augmentForMongo(
-                                    $resource($kUrl.base + $kUrl.appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
-                                        create: {
-                                            method: 'POST',
-                                            transformResponse: function(data) {
-                                                return new (Object(className))(angular.fromJson(data));
+                            return augmentReference(className,
+                                augmentObjectDef(className,
+                                    augmentForMongo(
+                                        $resource($kUrl.base + $kUrl.appdata + appKey + '/' + className + '/:_id', {_id: '@_id'}, {
+                                            create: {
+                                                method: 'POST',
+                                                transformResponse: function(data) {
+                                                    return new (Object(className))(angular.fromJson(data));
+                                                },
+                                                transformRequest: function(data) {
+                                                    var flat = flatten(data);
+                                                    return angular.toJson(flat);
+                                                },
+                                                headers: $kHead.user,
+                                                params: {
+                                                    _id: ''
+                                                }
                                             },
-                                            headers: $kHead.user,
+                                            get: {
+                                                method: 'GET',
+                                                transformResponse: function(data) {
+                                                    return new (Object(className))(angular.fromJson(data));
+                                                },
+                                                headers: $kHead.user
+                                            },
+                                            count: {
+                                                method: 'GET',
+                                                headers: $kHead.user,
+                                                params: {
+                                                    _id: '_count'
+                                                }
+                                            },
+                                            update: {
+                                                method: 'PUT',
+                                                transformResponse: function(data) {
+                                                    return new (Object(className))(angular.fromJson(data));
+                                                },
+                                                transformRequest: function(data) {
+                                                    var flat = flatten(data);
+                                                    return angular.toJson(flat);
+                                                },
+                                                headers: $kHead.user
+                                            },
+                                            delete: {
+                                                method: 'DELETE',
+                                                headers: $kHead.user
+                                            },
+                                            query: {
+                                                method: 'GET',
+                                                transformResponse: function(data) {
+                                                    var retVal = [];
+                                                    var objs = angular.fromJson(data);
+                                                    angular.forEach(objs, function(obj) {
+                                                        retVal.push(new (Object(className))(obj));
+                                                    });
+                                                    return retVal;
+                                                },
+                                                headers: $kHead.user,
+                                                isArray: true,
+                                                params: {
+                                                    _id: ''
+                                                }
+                                            },
+                                            group: {
+                                                method: 'POST',
+                                                headers: $kHead.user,
+                                                isArray: true,
+                                                params: {
+                                                    _id: '_group'
+                                                },
+                                                transformRequest: function(data) {
+                                                    return $kSerialize(data);
+                                                }
+                                            }
+                                        }))));
+                        };
+
+                        // User `$resource` definition
+                        var User =
+                            augmentReference('user',
+                                augmentForMongo(
+                                    $resource($kUrl.base + $kUrl.user + appKey + '/:_id', {_id: '@_id'} ,{
+                                        login: {
+                                            method: 'POST',
                                             params: {
-                                                _id: ''
+                                                _id: 'login'
+                                            },
+                                            transformResponse: function(data) {
+                                                data = angular.fromJson(data);
+                                                if(!data.error) {
+                                                    $kHead.user.Authorization = 'Kinvey '+data._kmd.authtoken;
+                                                    storageAdapter.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
+                                                }
+                                                return new User(data);
+                                            },
+                                            transformRequest: function(data) {
+                                                return angular.toJson(flatten(data));
+                                            },
+                                            headers: $kHead.user
+                                        },
+                                        current: {
+                                            method: 'GET',
+                                            params: {
+                                                _id: '_me'
+                                            },
+                                            transformResponse: function(data) {
+                                                return new User(angular.fromJson(data));
+                                            },
+                                            headers: $kHead.user
+                                        },
+                                        logout: {
+                                            method: 'POST',
+                                            params: {
+                                                _id: '_logout'
+                                            },
+                                            transformResponse: function() {
+                                                $kHead.user.Authorization = $kHead.basic.Authorization;
+                                                storageAdapter.remove(appKey+':authToken');
+                                            },
+                                            headers: $kHead.user
+                                        },
+                                        signup: {
+                                            method: 'POST',
+                                            headers: $kHead.basic,
+                                            transformResponse: function(data) {
+
+                                                data = angular.fromJson(data);
+                                                if(!data.error) {
+                                                    $kHead.user.Authorization = 'Kinvey '+data._kmd.authtoken;
+                                                    storageAdapter.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
+                                                }
+                                                return new User(data);
+                                            },
+                                            transformRequest: function(data) {
+                                                return angular.toJson(flatten(data));
                                             }
                                         },
                                         get: {
                                             method: 'GET',
                                             transformResponse: function(data) {
-                                                return new (Object(className))(angular.fromJson(data));
+                                                return new User(angular.fromJson(data));
                                             },
                                             headers: $kHead.user
                                         },
-                                        count: {
-                                            method: 'GET',
-                                            headers: $kHead.user,
-                                            params: {
-                                                _id: '_count'
-                                            }
-                                        },
-                                        update: {
-                                            method: 'PUT',
-                                            transformResponse: function(data) {
-                                                return new (Object(className))(angular.fromJson(data));
-                                            },
-                                            headers: $kHead.user
-                                        },
-                                        delete: {
-                                            method: 'DELETE',
-                                            headers: $kHead.user
-                                        },
-                                        query: {
-                                            method: 'GET',
+                                        lookup: {
+                                            method: 'POST',
                                             transformResponse: function(data) {
                                                 var retVal = [];
-                                                var objs = angular.fromJson(data);
-                                                angular.forEach(objs, function(obj) {
-                                                    retVal.push(new (Object(className))(obj));
+                                                data = angular.fromJson(data);
+                                                angular.forEach(data, function(user) {
+                                                    retVal.push(new User(user));
                                                 });
                                                 return retVal;
                                             },
                                             headers: $kHead.user,
-                                            isArray: true,
+                                            isArray:true,
                                             params: {
-                                                _id: ''
+                                                _id: '_lookup'
                                             }
                                         },
-                                        group: {
-                                            method: 'POST',
-                                            headers: $kHead.user,
-                                            isArray: true,
-                                            params: {
-                                                _id: '_group'
+                                        save:   {
+                                            method:'PUT',
+                                            transformResponse: function(data) {
+                                                return new User(angular.fromJson(data));
                                             },
                                             transformRequest: function(data) {
-                                                return $kSerialize(data);
+                                                return angular.toJson(flatten(data));
+                                            },
+                                            headers: $kHead.user
+                                        },
+                                        query:  {
+                                            url: $kUrl.base + $kUrl.user + appKey + '/?query=:query',
+                                            method:'GET',
+                                            transformResponse: function(data) {
+                                                var retVal = [];
+                                                data = angular.fromJson(data);
+                                                angular.forEach(data, function(user) {
+                                                    retVal.push(new User(user));
+                                                });
+                                                return retVal;
+                                            },
+                                            headers: $kHead.user,
+                                            isArray:true,
+                                            params: { }
+                                        },
+                                        delete: {
+                                            method:'DELETE',
+                                            params: {
+                                                hard: true
+                                            },
+                                            headers: $kHead.user
+                                        },
+                                        suspend: {
+                                            method:'DELETE',
+                                            headers: $kHead.user
+                                        },
+                                        verifyEmail: {
+                                            method: 'POST',
+                                            headers: {
+                                                Authorization: $kHead.basic.Authorization,
+                                                'X-Kinvey-API-Version': $kHead.basic['X-Kinvey-API-Version'],
+                                                'Content-Type': undefined
+                                            },
+                                            url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-email-verification-initiate',
+                                            params: {
+                                                username: '@username',
+                                                email: '@email'
+                                            },
+                                            transformRequest: function() {
+                                                return '';
                                             }
+                                        },
+                                        resetPassword: {
+                                            method: 'POST',
+                                            headers: $kHead.basic,
+                                            url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-password-reset-initiate',
+                                            params: {
+                                                username: '@username',
+                                                email: '@email'
+                                            },
+                                            transformRequest: function() {
+                                                return '';
+                                            }
+                                        },
+                                        checkUsernameExists: {
+                                            method: 'POST',
+                                            headers: $kHead.basic,
+                                            url: $kUrl.base+$kUrl.rpc+appKey+'/check-username-exists'
                                         }
                                     })));
-                        };
-
-                        // User `$resource` definition
-                        var User =
-                            augmentForMongo(
-                                $resource($kUrl.base + $kUrl.user + appKey + '/:_id', {_id: '@_id'} ,{
-                                    login: {
-                                        method: 'POST',
-                                        params: {
-                                            _id: 'login'
-                                        },
-                                        transformResponse: function(data) {
-                                            data = angular.fromJson(data);
-                                            if(!data.error) {
-                                                $kHead.user.Authorization = 'Kinvey '+data._kmd.authtoken;
-                                                storageAdapter.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
-                                            }
-                                            return new User(data);
-                                        },
-                                        headers: $kHead.user
-                                    },
-                                    current: {
-                                        method: 'GET',
-                                        params: {
-                                            _id: '_me'
-                                        },
-                                        transformResponse: function(data) {
-                                            return new User(angular.fromJson(data));
-                                        },
-                                        headers: $kHead.user
-                                    },
-                                    logout: {
-                                        method: 'POST',
-                                        params: {
-                                            _id: '_logout'
-                                        },
-                                        transformResponse: function() {
-                                            $kHead.user.Authorization = $kHead.basic.Authorization;
-                                            storageAdapter.remove(appKey+':authToken');
-                                        },
-                                        headers: $kHead.user
-                                    },
-                                    signup: {
-                                        method: 'POST',
-                                        headers: $kHead.basic,
-                                        transformResponse: function(data) {
-
-                                            data = angular.fromJson(data);
-                                            if(!data.error) {
-                                                $kHead.user.Authorization = 'Kinvey '+data._kmd.authtoken;
-                                                storageAdapter.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
-                                            }
-                                            return new User(data);
-                                        }
-                                    },
-                                    get: {
-                                        method: 'GET',
-                                        transformResponse: function(data) {
-                                            return new User(angular.fromJson(data));
-                                        },
-                                        headers: $kHead.user
-                                    },
-                                    lookup: {
-                                        method: 'POST',
-                                        transformResponse: function(data) {
-                                            var retVal = [];
-                                            data = angular.fromJson(data);
-                                            angular.forEach(data, function(user) {
-                                                retVal.push(new User(user));
-                                            });
-                                            return retVal;
-                                        },
-                                        headers: $kHead.user,
-                                        isArray:true,
-                                        params: {
-                                            _id: '_lookup'
-                                        }
-                                    },
-                                    save:   {
-                                        method:'PUT',
-                                        transformResponse: function(data) {
-                                            return new User(angular.fromJson(data));
-                                        },
-                                        headers: $kHead.user
-                                    },
-                                    query:  {
-                                        url: $kUrl.base + $kUrl.user + appKey + '/?query=:query',
-                                        method:'GET',
-                                        transformResponse: function(data) {
-                                            var retVal = [];
-                                            data = angular.fromJson(data);
-                                            angular.forEach(data, function(user) {
-                                                retVal.push(new User(user));
-                                            });
-                                            return retVal;
-                                        },
-                                        headers: $kHead.user,
-                                        isArray:true,
-                                        params: { }
-                                    },
-                                    delete: {
-                                        method:'DELETE',
-                                        params: {
-                                            hard: true
-                                        },
-                                        headers: $kHead.user
-                                    },
-                                    suspend: {
-                                        method:'DELETE',
-                                        headers: $kHead.user
-                                    },
-                                    verifyEmail: {
-                                        method: 'POST',
-                                        headers: {
-                                            Authorization: $kHead.basic.Authorization,
-                                            'X-Kinvey-API-Version': $kHead.basic['X-Kinvey-API-Version'],
-                                            'Content-Type': undefined
-                                        },
-                                        url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-email-verification-initiate',
-                                        params: {
-                                            username: '@username',
-                                            email: '@email'
-                                        },
-                                        transformRequest: function() {
-                                            return '';
-                                        }
-                                    },
-                                    resetPassword: {
-                                        method: 'POST',
-                                        headers: $kHead.basic,
-                                        url: $kUrl.base+$kUrl.rpc+appKey+'/:username:email/user-password-reset-initiate',
-                                        params: {
-                                            username: '@username',
-                                            email: '@email'
-                                        },
-                                        transformRequest: function() {
-                                            return '';
-                                        }
-                                    },
-                                    checkUsernameExists: {
-                                        method: 'POST',
-                                        headers: $kHead.basic,
-                                        url: $kUrl.base+$kUrl.rpc+appKey+'/check-username-exists'
-                                    }
-                                }));
 
                         // Group `$resource` definition
                         var Group =
@@ -638,33 +698,33 @@
                             augmentFileDef(
                                 augmentForMongo(
                                     $resource($kUrl.base + $kUrl.blob + appKey + '/:_id', {_id: '@_id'}, {
-                            get: {
-                                method: 'GET',
-                                headers: $kHead.user,
-                                transformResponse: function(data) {
-                                    return new File(angular.fromJson(data));
-                                }
-                            },
-                            query:  {
-                                method:'GET',
-                                headers: $kHead.user,
-                                isArray:true,
-                                params: {
-                                    _id: ''
-                                },
-                                transformResponse: function(data) {
-                                    var retVal = [];
-                                    angular.forEach(angular.fromJson(data), function(obj) {
-                                        retVal.push(new File(obj));
-                                    });
-                                    return retVal;
-                                }
-                            },
-                            delete: {
-                                method:'DELETE',
-                                headers: $kHead.user
-                            }
-                        })));
+                                        get: {
+                                            method: 'GET',
+                                            headers: $kHead.user,
+                                            transformResponse: function(data) {
+                                                return new File(angular.fromJson(data));
+                                            }
+                                        },
+                                        query:  {
+                                            method:'GET',
+                                            headers: $kHead.user,
+                                            isArray:true,
+                                            params: {
+                                                _id: ''
+                                            },
+                                            transformResponse: function(data) {
+                                                var retVal = [];
+                                                angular.forEach(angular.fromJson(data), function(obj) {
+                                                    retVal.push(new File(obj));
+                                                });
+                                                return retVal;
+                                            }
+                                        },
+                                        delete: {
+                                            method:'DELETE',
+                                            headers: $kHead.user
+                                        }
+                                    })));
 
                         var Push =
                                 $resource($kUrl.base + $kUrl.push + appKey + '/:verb', {verb: '@verb'}, {

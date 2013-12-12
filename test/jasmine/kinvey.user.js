@@ -21,6 +21,31 @@ describe('$kinvey', function() {
                 expect($kinvey.User).toBeDefined();
             });
 
+            describe('$reference', function() {
+                var user;
+
+                beforeEach(function() {
+                    user = new $kinvey.User();
+                });
+
+                it('should be $defined', function() {
+                    expect(user.$reference).toBeDefined();
+                });
+
+                it('should return undefined when no \'_id\' is present', function() {
+                    delete user._id;
+                    expect(user.$reference()).toBeUndefined();
+                });
+
+                it('should return a user reference when an \'_id\' is present', function() {
+                    user._id = 'badger';
+                    expect(user.$reference()._type).toBe('KinveyRef');
+                    expect(user.$reference()._collection).toBe('user');
+                    expect(user.$reference()._id).toBe('badger');
+                });
+
+            });
+
             describe('login', function() {
 
                 beforeEach(function() {
@@ -68,6 +93,64 @@ describe('$kinvey', function() {
                     });
                     $httpBackend.flush();
                     expect(result._id).toBe('goat');
+                });
+
+                describe('object nesting', function() {
+                    var user;
+
+                    beforeEach(function() {
+                        $kinvey.alias('object', 'Obj');
+                        user = new $kinvey.User({
+                            user: new $kinvey.User({_id: 'userId'}),
+                            deep: {
+                                file: new $kinvey.File({_id: 'fileId'}),
+                                deeper: {
+                                    object: new $kinvey.Obj({_id: 'objectId'}),
+                                    array: [new $kinvey.Obj({_id: 'arrayId'})],
+                                    $reference: 'spurious'
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        });
+                    });
+
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        $httpBackend.expectPOST('https://baas.kinvey.com/user/appkey/login', {
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            "X-Kinvey-API-Version":3,
+                            "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
+                            "Accept":"application/json, text/plain, */*",
+                            "Content-Type":"application/json;charset=utf-8"
+                        });
+                        user.$login();
+                        $httpBackend.flush();
+                    });
                 });
 
             });
@@ -217,6 +300,65 @@ describe('$kinvey', function() {
                     $httpBackend.flush();
                     expect(result._id).toBe('goat');
                 });
+
+                describe('object nesting', function() {
+                    var user;
+
+                    beforeEach(function() {
+                        $kinvey.alias('object', 'Obj');
+                        user = new $kinvey.User({
+                            user: new $kinvey.User({_id: 'userId'}),
+                            deep: {
+                                file: new $kinvey.File({_id: 'fileId'}),
+                                deeper: {
+                                    object: new $kinvey.Obj({_id: 'objectId'}),
+                                    array: [new $kinvey.Obj({_id: 'arrayId'})],
+                                    $reference: 'spurious'
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        });
+                    });
+
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        $httpBackend.expectPOST('https://baas.kinvey.com/user/appkey', {
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            "X-Kinvey-API-Version":3,
+                            "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
+                            "Accept":"application/json, text/plain, */*",
+                            "Content-Type":"application/json;charset=utf-8"
+                        });
+                        user.$signup();
+                        $httpBackend.flush();
+                    });
+                });
+
 
             });
 
@@ -480,6 +622,66 @@ describe('$kinvey', function() {
                     user.$save();
                     $httpBackend.flush();
                     expect(user.firstName).toBe('giraffe');
+                });
+
+                describe('object nesting', function() {
+                    var user;
+
+                    beforeEach(function() {
+                        $kinvey.alias('object', 'Obj');
+                        user = new $kinvey.User({
+                            _id: 'userId',
+                            user: new $kinvey.User({_id: 'userId'}),
+                            deep: {
+                                file: new $kinvey.File({_id: 'fileId'}),
+                                deeper: {
+                                    object: new $kinvey.Obj({_id: 'objectId'}),
+                                    array: [new $kinvey.Obj({_id: 'arrayId'})],
+                                    $reference: 'spurious'
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        });
+                    });
+
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        $httpBackend.expectPUT('https://baas.kinvey.com/user/appkey/userId', {
+                            _id: 'userId',
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            "X-Kinvey-API-Version":3,
+                            "Authorization":"Kinvey authtoken",
+                            "Accept":"application/json, text/plain, */*",
+                            "Content-Type":"application/json;charset=utf-8"
+                        });
+                        user.$save();
+                        $httpBackend.flush();
+                    });
                 });
 
             });

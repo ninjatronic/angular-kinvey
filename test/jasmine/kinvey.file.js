@@ -41,6 +41,31 @@ describe('$kinvey', function() {
             expect($kinvey.File).toBeDefined();
         });
 
+        describe('$reference', function() {
+            var file;
+
+            beforeEach(function() {
+                file = new $kinvey.File();
+            });
+
+            it('should be $defined', function() {
+                expect(file.$reference).toBeDefined();
+            });
+
+            it('should return undefined when no \'_id\' is present', function() {
+                delete file._id;
+                expect(file.$reference()).toBeUndefined();
+            });
+
+            it('should return a user reference when an \'_id\' is present', function() {
+                file._id = 'badger';
+                expect(file.$reference()._type).toBe('KinveyFile');
+                expect(file.$reference()._collection).toBeUndefined();
+                expect(file.$reference()._id).toBe('badger');
+            });
+
+        });
+
         describe('$save', function() {
             var fileObj;
 
@@ -238,6 +263,128 @@ describe('$kinvey', function() {
                 });
             });
 
+            describe('object nesting', function() {
+                var file;
+
+                beforeEach(function() {
+                    $kinvey.alias('object', 'Obj');
+                    file = new $kinvey.File({
+                        user: new $kinvey.User({_id: 'userId'}),
+                        deep: {
+                            file: new $kinvey.File({_id: 'fileId'}),
+                            deeper: {
+                                object: new $kinvey.Obj({_id: 'objectId'}),
+                                array: [new $kinvey.Obj({_id: 'arrayId'})],
+                                $reference: 'spurious'
+                            }
+                        },
+                        number: 1,
+                        string: 'here'
+                    });
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/blob/appkey')
+                        .respond({
+                            _id: 'fileId',
+                            _filename: 'myFile.txt',
+                            _uploadURL: 'http://google.com/upload/blob',
+                            _requiredHeaders: {
+                                'x-goog-acl': 'private'
+                            }
+                        });
+                    $httpBackend
+                        .when('PUT', 'https://baas.kinvey.com/blob/appkey/mainId')
+                        .respond({
+                            _id: 'fileId',
+                            _filename: 'myFile.txt',
+                            _uploadURL: 'http://google.com/upload/blob',
+                            _requiredHeaders: {
+                                'x-goog-acl': 'private'
+                            }
+                        });
+                });
+
+                describe('with no _id', function() {
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        $httpBackend.expectPOST('https://baas.kinvey.com/blob/appkey', {
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            'X-Kinvey-API-Version':3,
+                            'Authorization':'Kinvey authtoken',
+                            'Accept':'application/json, text/plain, */*',
+                            'Content-Type':'application/json;charset=utf-8'
+                        });
+                        file.$save();
+                        $httpBackend.flush();
+                    });
+                });
+
+                describe('with an _id', function() {
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        file._id = 'mainId';
+                        $httpBackend.expectPUT('https://baas.kinvey.com/blob/appkey/mainId', {
+                            _id: 'mainId',
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            'X-Kinvey-API-Version':3,
+                            'Authorization':'Kinvey authtoken',
+                            'Accept':'application/json, text/plain, */*',
+                            'Content-Type':'application/json;charset=utf-8'
+                        });
+                        file.$save();
+                        $httpBackend.flush();
+                    });
+                });
+
+            });
+
         });
 
         describe('save', function() {
@@ -411,6 +558,128 @@ describe('$kinvey', function() {
                     expect(fileObj._filename).toBe('myFile.txt');
                     expect(fileObj._uploadURL).toBe('http://google.com/upload/blob')
                     expect(fileObj.$resolved).toBeTruthy();
+                });
+
+            });
+
+            describe('object nesting', function() {
+                var file;
+
+                beforeEach(function() {
+                    $kinvey.alias('object', 'Obj');
+                    file = new $kinvey.File({
+                        user: new $kinvey.User({_id: 'userId'}),
+                        deep: {
+                            file: new $kinvey.File({_id: 'fileId'}),
+                            deeper: {
+                                object: new $kinvey.Obj({_id: 'objectId'}),
+                                array: [new $kinvey.Obj({_id: 'arrayId'})],
+                                $reference: 'spurious'
+                            }
+                        },
+                        number: 1,
+                        string: 'here'
+                    });
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/blob/appkey')
+                        .respond({
+                            _id: 'fileId',
+                            _filename: 'myFile.txt',
+                            _uploadURL: 'http://google.com/upload/blob',
+                            _requiredHeaders: {
+                                'x-goog-acl': 'private'
+                            }
+                        });
+                    $httpBackend
+                        .when('PUT', 'https://baas.kinvey.com/blob/appkey/mainId')
+                        .respond({
+                            _id: 'fileId',
+                            _filename: 'myFile.txt',
+                            _uploadURL: 'http://google.com/upload/blob',
+                            _requiredHeaders: {
+                                'x-goog-acl': 'private'
+                            }
+                        });
+                });
+
+                describe('with no _id', function() {
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        $httpBackend.expectPOST('https://baas.kinvey.com/blob/appkey', {
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            'X-Kinvey-API-Version':3,
+                            'Authorization':'Kinvey authtoken',
+                            'Accept':'application/json, text/plain, */*',
+                            'Content-Type':'application/json;charset=utf-8'
+                        });
+                        $kinvey.File.save(file);
+                        $httpBackend.flush();
+                    });
+                });
+
+                describe('with an _id', function() {
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        file._id = 'mainId';
+                        $httpBackend.expectPUT('https://baas.kinvey.com/blob/appkey/mainId', {
+                            _id: 'mainId',
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            'X-Kinvey-API-Version':3,
+                            'Authorization':'Kinvey authtoken',
+                            'Accept':'application/json, text/plain, */*',
+                            'Content-Type':'application/json;charset=utf-8'
+                        });
+                        $kinvey.File.save(file);
+                        $httpBackend.flush();
+                    });
                 });
 
             });
