@@ -86,10 +86,44 @@
 
         })
 
+        .constant('$kStorageAdapter', function(storage) {
+            return {
+                get: function(key) {
+                    return storage[key];
+                },
+                put: function(key, value) {
+                    storage[key] = value;
+                },
+                remove: function(key) {
+                    storage[key] = null;
+                }
+            };
+        })
+
+        .constant('$kRequire', function($module, $provider, $injector, $rootScope) {
+            // we need an isolated injector to instantiate the storage factory
+            // as it will confuse our app $injector otherwise
+            var modInjector = angular.injector(['ng', $module, 'kinvey']);
+
+            var $external = modInjector.instantiate($provider.$get);
+            var $externalScope = modInjector.get('$rootScope');
+
+            // $rootScope.$watch is what drives the dirty checking in $cookieStore
+            // since we injected it using an isolated injector (essentially an
+            // injector for a separate app) it has a separate $rootScope, so we need
+            // to ensure that whenever our $rootScope $applies it triggers the same
+            // on the isolated $rootScope
+            $rootScope.$watch(function() {
+                $externalScope.$apply();
+            });
+
+            return $external;
+        })
+
         // this is the service provider
         .provider('$kinvey', [
-            '$kUrl', '$kHead', '$kVer', '$kErr', '$kSerialize', '$base64',
-            function($kUrl, $kHead, $kVer, $kErr, $kSerialize, $base64) {
+            '$kUrl', '$kHead', '$kVer', '$kErr', '$kSerialize', '$kStorageAdapter', '$kRequire', '$base64', '$injector',
+            function($kUrl, $kHead, $kVer, $kErr, $kSerialize, $kStorageAdapter, $kRequire, $base64, $injector) {
 
                 // strap up the headers with the target API version
                 $kHead.user['X-Kinvey-API-Version'] = $kVer;
@@ -117,30 +151,19 @@
                         $kHead.basic.Authorization = auth;
                     },
 
-                    $get: ['$resource', '$http', '$q', function($resource, $http, $q) {
-
+                    $get: ['$rootScope', '$resource', '$http', '$q', function($rootScope, $resource, $http, $q) {
 
                         var storageAdapter;
                         switch(storageOption) {
                             case 'cookies':
-                                inject(['$cookieStore', function($cookieStore) {
-                                    storageAdapter = $cookieStore;
-                                }]);
+                                var $cookieStoreProvider = $injector.get('$cookieStoreProvider');
+                                var $cookieStore = $kRequire('ngCookies', $cookieStoreProvider, $injector, $rootScope);
+                                storageAdapter = $cookieStore;
                                 break;
                             case 'local':
-                                inject(['$localStorage', function($localStorage) {
-                                    storageAdapter = {
-                                        get: function(key) {
-                                            return $localStorage[key];
-                                        },
-                                        put: function(key, value) {
-                                            $localStorage[key] = value;
-                                        },
-                                        remove: function(key) {
-                                            $localStorage[key] = undefined;
-                                        }
-                                    };
-                                }]);
+                                var $localStorageProvider = $injector.get('$localStorageProvider');
+                                var $localStorage = $kRequire('ngStorage', $localStorageProvider, $injector, $rootScope);
+                                storageAdapter = $kStorageAdapter($localStorage);
                                 break;
                             default:
                                 var temp = {};
