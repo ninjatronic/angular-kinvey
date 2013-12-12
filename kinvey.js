@@ -304,7 +304,7 @@
                             resourceDef.prototype.$save = function(mimeType) {
                                 var file = this;
                                 return augmentPromise(function(retVal, deferred) {
-                                    $http(funcDefs.saveFile(file, mimeType))
+                                    $http(funcDefs.saveFile(flatten(file), mimeType))
                                         .then(
                                             augmentResolve(retVal, deferred, getFile),
                                             augmentReject(deferred, getData));
@@ -419,6 +419,24 @@
                                         augmentResolve(retVal, deferred, getData),
                                         augmentReject(deferred, getData));
                             });
+                        }
+
+                        /*
+                            DEALS WITH AUTOMATIC REFERENCE RESOLUTION AS PART OF SERIALIZATION
+                         */
+                        function flatten(src) {
+                            var dst = {};
+                            dst = angular.copy(src);
+                            angular.forEach(dst, function(value, key) {
+                                if(typeof(value) === 'object') {
+                                    if(('$reference' in value) && (typeof(value.$reference) === 'function')) {
+                                        dst[key] = value.$reference();
+                                    } else {
+                                        dst[key] = flatten(value);
+                                    }
+                                }
+                            });
+                            return dst;
                         }
 
                         /*
@@ -663,33 +681,33 @@
                             augmentFileDef(
                                 augmentForMongo(
                                     $resource($kUrl.base + $kUrl.blob + appKey + '/:_id', {_id: '@_id'}, {
-                            get: {
-                                method: 'GET',
-                                headers: $kHead.user,
-                                transformResponse: function(data) {
-                                    return new File(angular.fromJson(data));
-                                }
-                            },
-                            query:  {
-                                method:'GET',
-                                headers: $kHead.user,
-                                isArray:true,
-                                params: {
-                                    _id: ''
-                                },
-                                transformResponse: function(data) {
-                                    var retVal = [];
-                                    angular.forEach(angular.fromJson(data), function(obj) {
-                                        retVal.push(new File(obj));
-                                    });
-                                    return retVal;
-                                }
-                            },
-                            delete: {
-                                method:'DELETE',
-                                headers: $kHead.user
-                            }
-                        })));
+                                        get: {
+                                            method: 'GET',
+                                            headers: $kHead.user,
+                                            transformResponse: function(data) {
+                                                return new File(angular.fromJson(data));
+                                            }
+                                        },
+                                        query:  {
+                                            method:'GET',
+                                            headers: $kHead.user,
+                                            isArray:true,
+                                            params: {
+                                                _id: ''
+                                            },
+                                            transformResponse: function(data) {
+                                                var retVal = [];
+                                                angular.forEach(angular.fromJson(data), function(obj) {
+                                                    retVal.push(new File(obj));
+                                                });
+                                                return retVal;
+                                            }
+                                        },
+                                        delete: {
+                                            method:'DELETE',
+                                            headers: $kHead.user
+                                        }
+                                    })));
 
                         var Push =
                                 $resource($kUrl.base + $kUrl.push + appKey + '/:verb', {verb: '@verb'}, {
