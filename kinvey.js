@@ -338,7 +338,7 @@
                             };
                             resourceDef.save = function(file, mimeType) {
                                 return augmentPromise(function(retVal, deferred) {
-                                    $http(funcDefs.saveFile(file, mimeType))
+                                    $http(funcDefs.saveFile(flatten(file), mimeType))
                                         .then(
                                             augmentResolve(retVal, deferred, getFile),
                                             augmentReject(deferred, getData));
@@ -540,6 +540,9 @@
                                                 }
                                                 return new User(data);
                                             },
+                                            transformRequest: function(data) {
+                                                return angular.toJson(flatten(data));
+                                            },
                                             headers: $kHead.user
                                         },
                                         current: {
@@ -574,6 +577,9 @@
                                                     storageAdapter.put(appKey+':authToken', 'Kinvey '+data._kmd.authtoken);
                                                 }
                                                 return new User(data);
+                                            },
+                                            transformRequest: function(data) {
+                                                return angular.toJson(flatten(data));
                                             }
                                         },
                                         get: {
@@ -603,6 +609,9 @@
                                             method:'PUT',
                                             transformResponse: function(data) {
                                                 return new User(angular.fromJson(data));
+                                            },
+                                            transformRequest: function(data) {
+                                                return angular.toJson(flatten(data));
                                             },
                                             headers: $kHead.user
                                         },
