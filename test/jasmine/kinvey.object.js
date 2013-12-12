@@ -139,6 +139,115 @@ describe('$kinvey', function() {
                 });
 
             });
+
+            describe('object nesting', function() {
+                var object;
+
+                beforeEach(function() {
+                    $kinvey.alias('object', 'Obj');
+                    object = new $kinvey.Badger({
+                        user: new $kinvey.User({_id: 'userId'}),
+                        deep: {
+                            file: new $kinvey.File({_id: 'fileId'}),
+                            deeper: {
+                                object: new $kinvey.Obj({_id: 'objectId'}),
+                                array: [new $kinvey.Obj({_id: 'arrayId'})],
+                                $reference: 'spurious'
+                            }
+                        },
+                        number: 1,
+                        string: 'here'
+                    });
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/appdata/appkey/classname')
+                        .respond(204);
+                    $httpBackend
+                        .when('PUT', 'https://baas.kinvey.com/appdata/appkey/classname/mainId')
+                        .respond(204);
+                });
+
+                describe('with no _id', function() {
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        $httpBackend.expectPOST('https://baas.kinvey.com/appdata/appkey/classname', {
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            'X-Kinvey-API-Version':3,
+                            'Authorization':'Kinvey authtoken',
+                            'Accept':'application/json, text/plain, */*',
+                            'Content-Type':'application/json;charset=utf-8'
+                        });
+                        object.$save();
+                        $httpBackend.flush();
+                    });
+                });
+
+                describe('with an _id', function() {
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        object._id = 'mainId';
+                        $httpBackend.expectPUT('https://baas.kinvey.com/appdata/appkey/classname/mainId', {
+                            _id: 'mainId',
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            'X-Kinvey-API-Version':3,
+                            'Authorization':'Kinvey authtoken',
+                            'Accept':'application/json, text/plain, */*',
+                            'Content-Type':'application/json;charset=utf-8'
+                        });
+                        object.$save();
+                        $httpBackend.flush();
+                    });
+                });
+
+            });
+
         });
 
         describe('$save', function() {

@@ -454,6 +454,10 @@
                                                 transformResponse: function(data) {
                                                     return new (Object(className))(angular.fromJson(data));
                                                 },
+                                                transformRequest: function(data) {
+                                                    var flat = flatten(data);
+                                                    return angular.toJson(flat);
+                                                },
                                                 headers: $kHead.user,
                                                 params: {
                                                     _id: ''
@@ -477,6 +481,10 @@
                                                 method: 'PUT',
                                                 transformResponse: function(data) {
                                                     return new (Object(className))(angular.fromJson(data));
+                                                },
+                                                transformRequest: function(data) {
+                                                    var flat = flatten(data);
+                                                    return angular.toJson(flat);
                                                 },
                                                 headers: $kHead.user
                                             },
