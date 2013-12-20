@@ -3,6 +3,6 @@ node_js:
   - "0.10.20"
 before_install:
   - npm cache clear
-  - bower cache clean
   - npm install
+  - bower cache clean
   - bower install
