@@ -1,6 +1,6 @@
 {
     "name": "angular-kinvey",
-    "version": "v1.1.0",
+    "version": "v2.0.0",
     "ignore": [
         "test/",
         "kinvey-endpoints/",
@@ -14,7 +14,6 @@
     ],
     "dependencies": {
         "angular": ">= v1.2.0-rc.3",
-        "angular-cookies": ">= v1.2.0-rc.3",
         "angular-resource": ">= v1.2.0-rc.3",
         "angular-base64": ">= v2.0.0"
     },
@@ -23,6 +22,7 @@
         "angular-mocks": ">= v1.2.0-rc.3",
         "angular-cookies": ">= v1.2.0-rc.3",
         "angular-resource": ">= v1.2.0-rc.3",
-        "angular-base64": ">= v2.0.0"
+        "angular-base64": ">= v2.0.0",
+        "ngstorage": ">= 0.3.0"
     }
 }

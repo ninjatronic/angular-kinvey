@@ -955,4 +955,62 @@ describe('$kinvey', function() {
         });
 
     });
+
+    describe('$kinvey.push', function() {
+        var user;
+        var push;
+
+        it('should signup the temporary user', function() {
+            runs(function() {
+                user = $kinvey
+                    .User
+                    .signup({
+                        username: 'fileTestUsername',
+                        password: 'testPassword',
+                        firstName: 'Test',
+                        lastName: 'User'
+                    });
+            });
+            waitsFor(function() {
+                return user.$resolved;
+            });
+        });
+
+        it('should register for push', function() {
+            runs(function() {
+                push = new $kinvey.Push({
+                    platform: 'ios',
+                    deviceId: 'deviceid'
+                });
+                push.$register();
+            });
+            waitsFor(function() {
+                return push.$resolved;
+            });
+        });
+
+        it('should unregister for push', function() {
+            runs(function() {
+                push = new $kinvey.Push({
+                    platform: 'ios',
+                    deviceId: 'deviceid'
+                });
+                push.$unregister();
+            })
+            waitsFor(function() {
+                return push.$resolved;
+            })
+        });
+
+        it('should delete the temporary user', function() {
+            var response;
+            runs(function() {
+                response = $kinvey.User.delete({_id: user._id});
+            });
+            waitsFor(function() {
+                return response.$resolved;
+            });
+        });
+
+    });
 });

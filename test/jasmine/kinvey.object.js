@@ -19,19 +19,38 @@ describe('$kinvey', function() {
             expect($kinvey.Object).toBeDefined();
         });
 
-        xdescribe('create', function() {
-
-            it('should be defined', function() {
-                expect($kinvey.Object('classname').create).toBeDefined();
-            });
+        describe('$reference', function() {
+            var object;
 
             beforeEach(function() {
-                $httpBackend
-                    .when('POST', 'https://baas.kinvey.com/appdata/appkey/classname')
-                    .respond({
-                        _id: 'newId',
-                        description: 'giraffe'
-                    });
+                $kinvey.alias('classname', 'Classdef');
+                object = new $kinvey.Classdef();
+            });
+
+            it('should be $defined', function() {
+                expect(object.$reference).toBeDefined();
+            });
+
+            it('should return undefined when no \'_id\' is present', function() {
+                delete object._id;
+                expect(object.$reference()).toBeUndefined();
+            });
+
+            it('should return a user reference when an \'_id\' is present', function() {
+                object._id = 'badger';
+                expect(object.$reference()._type).toBe('KinveyRef');
+                expect(object.$reference()._collection).toBe('classname');
+                expect(object.$reference()._id).toBe('badger');
+            });
+
+        });
+
+        describe('save', function() {
+            var object;
+
+            beforeEach(function() {
+                $kinvey.alias('classname', 'Badger');
+                object = new $kinvey.Badger();
                 $httpBackend
                     .when('POST', 'https://baas.kinvey.com/user/appkey/login')
                     .respond({
@@ -53,8 +72,19 @@ describe('$kinvey', function() {
                 $httpBackend.verifyNoOutstandingRequest();
             });
 
-            it('should make an authorized POST request to ../appdata/appkey/classname', function() {
-                $httpBackend.expectPOST('https://baas.kinvey.com/appdata/appkey/classname', {
+            describe('without an _id', function() {
+
+                beforeEach(function() {
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/appdata/appkey/classname')
+                        .respond({
+                            _id: 'newId',
+                            description: 'giraffe'
+                        });
+                });
+
+                it('should make an authorized POST request to ../appdata/appkey/classname', function() {
+                    $httpBackend.expectPOST('https://baas.kinvey.com/appdata/appkey/classname', {
                         description: 'giraffe'
                     }, {
                         "X-Kinvey-API-Version":3,
@@ -62,73 +92,160 @@ describe('$kinvey', function() {
                         "Accept":"application/json, text/plain, */*",
                         "Content-Type":"application/json;charset=utf-8"
                     });
-                $kinvey.Object('classname').create({description: 'giraffe'});
-                $httpBackend.flush();
-            });
-
-            it('should return an appropriate resource object', function() {
-                var object = $kinvey.Object('classname').create({description: 'giraffe'});
-                $httpBackend.flush();
-                expect(object._id).toBe('newId');
-            });
-
-        });
-
-        xdescribe('save', function() {
-
-
-            it('should be defined', function() {
-                expect($kinvey.TestObject.save).toBeDefined();
-            });
-
-            beforeEach(function() {
-                $kinvey.alias('classname', 'TestObject');
-                $httpBackend
-                    .when('PUT', 'https://baas.kinvey.com/appdata/appkey/classname/_id')
-                    .respond({
-                        _id: '_id',
-                        description: 'giraffe',
-                        anotherField: 'dolphin'
-                    });
-                $httpBackend
-                    .when('POST', 'https://baas.kinvey.com/user/appkey/login')
-                    .respond({
-                        username: 'badger',
-                        _id: 'goat',
-                        _kmd: {
-                            authtoken: 'authtoken'
-                        }
-                    });
-                $kinvey.User.login({
-                    'username':'badger',
-                    'password':'giraffe'
+                    object.description = 'giraffe';
+                    $kinvey.Badger.save(object);
+                    $httpBackend.flush();
                 });
-                $httpBackend.flush();
-            });
 
-            afterEach(function() {
-                $httpBackend.verifyNoOutstandingExpectation();
-                $httpBackend.verifyNoOutstandingRequest();
-            });
-
-            it('should make an authorized PUT request to ../appdata/appkey/classname/_id', function() {
-                $httpBackend.expectPUT('https://baas.kinvey.com/appdata/appkey/classname/_id', {
-                    _id: '_id',
-                    description: 'giraffe'
-                }, {
-                    "X-Kinvey-API-Version":3,
-                    "Authorization":"Kinvey authtoken",
-                    "Accept":"application/json, text/plain, */*",
-                    "Content-Type":"application/json;charset=utf-8"
+                it('should return an appropriate resource object', function() {
+                    object.description = 'giraffe';
+                    $kinvey.Badger.save(object);
+                    $httpBackend.flush();
+                    expect(object.description).toBe('giraffe');
                 });
-                $kinvey.TestObject.save({_id: '_id', description: 'giraffe'});
-                $httpBackend.flush();
+
             });
 
-            it('should return an appropriate resource object', function() {
-                var object = $kinvey.TestObject.save({_id: '_id', description: 'giraffe'});
-                $httpBackend.flush();
-                expect(object.anotherField).toBe('dolphin');
+            describe('with an _id', function() {
+
+                beforeEach(function() {
+                    object._id = 'newId';
+                    $httpBackend
+                        .when('PUT', 'https://baas.kinvey.com/appdata/appkey/classname/newId')
+                        .respond({
+                            _id: 'newId',
+                            description: 'giraffe'
+                        });
+                });
+
+                it('should make an authorized PUT request to ../appdata/appkey/classname/newId', function() {
+                    $httpBackend.expectPUT('https://baas.kinvey.com/appdata/appkey/classname/newId', {
+                        _id: 'newId',
+                        description: 'giraffe'
+                    }, {
+                        "X-Kinvey-API-Version":3,
+                        "Authorization":"Kinvey authtoken",
+                        "Accept":"application/json, text/plain, */*",
+                        "Content-Type":"application/json;charset=utf-8"
+                    });
+                    object.description = 'giraffe';
+                    $kinvey.Badger.save(object);
+                    $httpBackend.flush();
+                });
+
+                it('should return an appropriate resource object', function() {
+                    $kinvey.Badger.save(object);
+                    $httpBackend.flush();
+                });
+
+            });
+
+            describe('object nesting', function() {
+                var object;
+
+                beforeEach(function() {
+                    $kinvey.alias('object', 'Obj');
+                    object = new $kinvey.Badger({
+                        user: new $kinvey.User({_id: 'userId'}),
+                        deep: {
+                            file: new $kinvey.File({_id: 'fileId'}),
+                            deeper: {
+                                object: new $kinvey.Obj({_id: 'objectId'}),
+                                array: [new $kinvey.Obj({_id: 'arrayId'})],
+                                $reference: 'spurious'
+                            }
+                        },
+                        number: 1,
+                        string: 'here'
+                    });
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/appdata/appkey/classname')
+                        .respond(204);
+                    $httpBackend
+                        .when('PUT', 'https://baas.kinvey.com/appdata/appkey/classname/mainId')
+                        .respond(204);
+                });
+
+                describe('with no _id', function() {
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        $httpBackend.expectPOST('https://baas.kinvey.com/appdata/appkey/classname', {
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            'X-Kinvey-API-Version':3,
+                            'Authorization':'Kinvey authtoken',
+                            'Accept':'application/json, text/plain, */*',
+                            'Content-Type':'application/json;charset=utf-8'
+                        });
+                        $kinvey.Badger.save(object);
+                        $httpBackend.flush();
+                    });
+                });
+
+                describe('with an _id', function() {
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        object._id = 'mainId';
+                        $httpBackend.expectPUT('https://baas.kinvey.com/appdata/appkey/classname/mainId', {
+                            _id: 'mainId',
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            'X-Kinvey-API-Version':3,
+                            'Authorization':'Kinvey authtoken',
+                            'Accept':'application/json, text/plain, */*',
+                            'Content-Type':'application/json;charset=utf-8'
+                        });
+                        $kinvey.Badger.save(object);
+                        $httpBackend.flush();
+                    });
+                });
+
             });
 
         });
@@ -228,6 +345,115 @@ describe('$kinvey', function() {
                 });
 
             });
+
+            describe('object nesting', function() {
+                var object;
+
+                beforeEach(function() {
+                    $kinvey.alias('object', 'Obj');
+                    object = new $kinvey.Badger({
+                        user: new $kinvey.User({_id: 'userId'}),
+                        deep: {
+                            file: new $kinvey.File({_id: 'fileId'}),
+                            deeper: {
+                                object: new $kinvey.Obj({_id: 'objectId'}),
+                                array: [new $kinvey.Obj({_id: 'arrayId'})],
+                                $reference: 'spurious'
+                            }
+                        },
+                        number: 1,
+                        string: 'here'
+                    });
+                    $httpBackend
+                        .when('POST', 'https://baas.kinvey.com/appdata/appkey/classname')
+                        .respond(204);
+                    $httpBackend
+                        .when('PUT', 'https://baas.kinvey.com/appdata/appkey/classname/mainId')
+                        .respond(204);
+                });
+
+                describe('with no _id', function() {
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        $httpBackend.expectPOST('https://baas.kinvey.com/appdata/appkey/classname', {
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            'X-Kinvey-API-Version':3,
+                            'Authorization':'Kinvey authtoken',
+                            'Accept':'application/json, text/plain, */*',
+                            'Content-Type':'application/json;charset=utf-8'
+                        });
+                        object.$save();
+                        $httpBackend.flush();
+                    });
+                });
+
+                describe('with an _id', function() {
+                    it('should detect nested Objects, Users and Files and replace them with references', function() {
+                        object._id = 'mainId';
+                        $httpBackend.expectPUT('https://baas.kinvey.com/appdata/appkey/classname/mainId', {
+                            _id: 'mainId',
+                            user: {
+                                _type: 'KinveyRef',
+                                _collection: 'user',
+                                _id: 'userId'
+                            },
+                            deep: {
+                                file: {
+                                    _type: 'KinveyFile',
+                                    _id: 'fileId'
+                                },
+                                deeper: {
+                                    object: {
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'objectId'
+                                    },
+                                    array: [{
+                                        _type: 'KinveyRef',
+                                        _collection: 'object',
+                                        _id: 'arrayId'
+                                    }]
+                                }
+                            },
+                            number: 1,
+                            string: 'here'
+                        }, {
+                            'X-Kinvey-API-Version':3,
+                            'Authorization':'Kinvey authtoken',
+                            'Accept':'application/json, text/plain, */*',
+                            'Content-Type':'application/json;charset=utf-8'
+                        });
+                        object.$save();
+                        $httpBackend.flush();
+                    });
+                });
+
+            });
+
         });
 
         describe('get', function() {

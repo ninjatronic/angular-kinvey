@@ -6,12 +6,16 @@
 This API allows an AngularJS app to interact with its backend on Kinvey programatically using the `$resource` 
 paradigm provided by Angular.
 
-## Dependencies
+## Mandatory Dependencies
 
 * [AngularJS 1.2.0-rc.3 or later](https://github.com/angular/bower-angular)
 * [ngResource 1.2.0-rc.3 or later](https://github.com/angular/bower-angular-resource)
-* [ngCookies 1.2.0-rc.3 or later](https://github.com/angular/bower-angular-cookies)
 * [ngBase64](https://github.com/ninjatronic/ngBase64)
+
+## Optional Dependencies
+
+* [ngCookies 1.2.0-rc.3 or later](https://github.com/angular/bower-angular-cookies)
+* [ngStorage 0.3.0 or later](https://github.com/gsklee/ngStorage)
 
 ## Usage
 
