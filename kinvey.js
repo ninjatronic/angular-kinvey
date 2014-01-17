@@ -451,7 +451,7 @@
                             var dst = {};
                             dst = angular.copy(src);
                             angular.forEach(dst, function(value, key) {
-                                if(typeof(value) === 'object') {
+                                if(typeof(value) === 'object' && value !== null) {
                                     if(('$reference' in value) && (typeof(value.$reference) === 'function')) {
                                         dst[key] = value.$reference();
                                     } else {
