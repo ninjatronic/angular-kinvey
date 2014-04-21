@@ -1,6 +1,6 @@
 {
   "name": "kinvey",
-  "version": "v2.0.0",
+  "version": "v2.0.1",
   "author": "Ninjatronic",
   "description": "AngularJS support for Kinvey BaaS",
   "contributors": [
@@ -15,9 +15,9 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "grunt": "~ 0.4.4",
-    "bower": "~ 1.3.2",
-    "grunt-cli": "~ 0.1.13",
+    "grunt": "~0.4.4",
+    "bower": "~1.3.2",
+    "grunt-cli": "~0.1.13",
     "phantomjs": "~1.9.7-3",
     "grunt-contrib-jshint": "~0.10.0",
     "grunt-contrib-watch": "~0.6.1",
@@ -26,7 +26,8 @@
     "grunt-notify": "~0.2.20",
     "grunt-strip": "~0.2.1",
     "grunt-text-replace": "~0.3.11",
-    "karma-jasmine": "^0.1.5"
+    "karma-jasmine": "~0.1.5",
+    "karma-phantomjs-launcher": "~0.1.4"
   },
   "scripts": {
     "test": "./node_modules/.bin/grunt testAll",

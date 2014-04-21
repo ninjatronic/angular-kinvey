@@ -8,13 +8,13 @@ paradigm provided by Angular.
 
 ## Mandatory Dependencies
 
-* [AngularJS 1.2.0-rc.3 or later](https://github.com/angular/bower-angular)
-* [ngResource 1.2.0-rc.3 or later](https://github.com/angular/bower-angular-resource)
+* [AngularJS 1.3.0 or later](https://github.com/angular/bower-angular)
+* [ngResource 1.3.0 or later](https://github.com/angular/bower-angular-resource)
 * [ngBase64](https://github.com/ninjatronic/ngBase64)
 
 ## Optional Dependencies
 
-* [ngCookies 1.2.0-rc.3 or later](https://github.com/angular/bower-angular-cookies)
+* [ngCookies 1.3.0 or later](https://github.com/angular/bower-angular-cookies)
 * [ngStorage 0.3.0 or later](https://github.com/gsklee/ngStorage)
 
 ## Usage
@@ -46,17 +46,17 @@ Contributions are welcome on this project.
 * If you think there is something missing or have discovered a bug please [open an issue](https://github.com/ninjatronic/angular-kinvey/issues/new)
 * If you want to submit code to the project, please [fork the repo](https://github.com/ninjatronic/angular-kinvey/fork) and submit a pull request
 
-You can check the [project milestones](https://github.com/ninjatronic/angular-kinvey/issues/milestones?with_issues=yes) for an
-idea of the development roadmap.
+You can check the [project milestones](https://github.com/ninjatronic/angular-kinvey/issues/milestones?with_issues=yes)
+for an idea of the development roadmap.
 
 ### Tooling for Development
 
 This project uses Grunt for tooling. The toolbelt dependencies are managed by NPM and the production  dependencies are
-managed by Bower. To develop, fork this repo and clone the code, then...
+managed by Bower. Bower dependencies are automatically installed after an npm installation. To develop, fork this repo
+and clone the code, then...
 
 ```
 npm install
-bower install
 ```
 
 Unit and scenario tests are run with `grunt test`. To run only unit tests use `grunt testUnit`. To build the minified
