@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "0.10.20"
+  - "0.10.7"
 before_install:
   - npm cache clear
   - npm install
