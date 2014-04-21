@@ -1,33 +1,35 @@
 {
-    "name": "kinvey",
-    "version": "v2.0.0",
-    "author": "Ninjatronic",
-    "description": "AngularJS support for Kinvey BaaS",
-    "contributors": [
-        {
-            "name": "Pete Martin",
-            "email": "pete@ninjatronic.com"
-        }
-    ],
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/ninjatronic/ngKinvey.git"
-    },
-    "license": "MIT",
-    "devDependencies": {
-        "grunt": "latest",
-        "bower": "latest",
-        "grunt-cli": "latest",
-        "phantomjs": "latest",
-        "grunt-contrib-jshint": "latest",
-        "grunt-contrib-watch": "latest",
-        "grunt-contrib-uglify": "latest",
-        "grunt-karma": "latest",
-        "grunt-notify": "latest",
-        "grunt-strip": "latest",
-        "grunt-text-replace": "latest"
-    },
-    "scripts": {
-        "test": "grunt testAll"
+  "name": "kinvey",
+  "version": "v2.0.0",
+  "author": "Ninjatronic",
+  "description": "AngularJS support for Kinvey BaaS",
+  "contributors": [
+    {
+      "name": "Pete Martin",
+      "email": "pete@ninjatronic.com"
     }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ninjatronic/ngKinvey.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "~ 0.4.4",
+    "bower": "~ 1.3.2",
+    "grunt-cli": "~ 0.1.13",
+    "phantomjs": "~1.9.7-3",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-uglify": "~0.4.0",
+    "grunt-karma": "~0.8.2",
+    "grunt-notify": "~0.2.20",
+    "grunt-strip": "~0.2.1",
+    "grunt-text-replace": "~0.3.11",
+    "karma-jasmine": "^0.1.5"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/grunt testAll",
+    "postinstall": "./node_modules/.bin/bower install"
+  }
 }

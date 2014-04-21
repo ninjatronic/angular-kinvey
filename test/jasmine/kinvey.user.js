@@ -705,7 +705,7 @@ describe('$kinvey', function() {
 
                 beforeEach(function() {
                     $httpBackend
-                        .when('GET', 'https://baas.kinvey.com/user/appkey/?query=%7B%22age%22:2%7D&')
+                        .when('GET', 'https://baas.kinvey.com/user/appkey/?query=%7B%22age%22:2%7D')
                         .respond(expected);
                     $httpBackend
                         .when('POST', 'https://baas.kinvey.com/user/appkey/login')
@@ -727,7 +727,7 @@ describe('$kinvey', function() {
                 });
 
                 it('should make a GET request to ../', function() {
-                    $httpBackend.expectGET('https://baas.kinvey.com/user/appkey/?query=%7B%22age%22:2%7D&', {
+                    $httpBackend.expectGET('https://baas.kinvey.com/user/appkey/?query=%7B%22age%22:2%7D', {
                         'Accept':'application/json, text/plain, */*',
                         'X-Kinvey-API-Version':3,
                         'Authorization':'Kinvey authtoken'
@@ -750,10 +750,10 @@ describe('$kinvey', function() {
 
                 beforeEach(function() {
                     $httpBackend
-                        .when('POST', 'https://baas.kinvey.com/rpc/appkey/username/user-email-verification-initiate?')
+                        .when('POST', 'https://baas.kinvey.com/rpc/appkey/username/user-email-verification-initiate')
                         .respond(204);
                     $httpBackend
-                        .when('POST', 'https://baas.kinvey.com/rpc/appkey/email/user-email-verification-initiate?')
+                        .when('POST', 'https://baas.kinvey.com/rpc/appkey/email/user-email-verification-initiate')
                         .respond(204);
                     $httpBackend
                         .when('POST', 'https://baas.kinvey.com/user/appkey/login')
@@ -781,7 +781,7 @@ describe('$kinvey', function() {
                 });
 
                 it('should make a POST request to /rpc/appkey/username/user-email-verification-initiate', function() {
-                    $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/username/user-email-verification-initiate?', undefined, {
+                    $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/username/user-email-verification-initiate', undefined, {
                         "X-Kinvey-API-Version":3,
                         "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
                         "Accept":"application/json, text/plain, */*"
@@ -791,7 +791,7 @@ describe('$kinvey', function() {
                 });
 
                 it('should make a POST request to /rpc/appkey/email/user-email-verification-initiate', function() {
-                    $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/email/user-email-verification-initiate?', undefined, {
+                    $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/email/user-email-verification-initiate', undefined, {
                         "X-Kinvey-API-Version":3,
                         "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
                         "Accept":"application/json, text/plain, */*"
@@ -806,7 +806,7 @@ describe('$kinvey', function() {
 
                 beforeEach(function() {
                     $httpBackend
-                        .when('POST', 'https://baas.kinvey.com/rpc/appkey/username/user-password-reset-initiate?')
+                        .when('POST', 'https://baas.kinvey.com/rpc/appkey/username/user-password-reset-initiate')
                         .respond(204);
                     $httpBackend
                         .when('POST', 'https://baas.kinvey.com/user/appkey/login')
@@ -834,7 +834,7 @@ describe('$kinvey', function() {
                 });
 
                 it('should make a POST request to /rpc/appkey/username/user-password-reset-initiate', function() {
-                    $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/username/user-password-reset-initiate?', undefined, {
+                    $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/username/user-password-reset-initiate', undefined, {
                         "X-Kinvey-API-Version":3,
                         "Authorization":"Basic YXBwa2V5OmFwcHNlY3JldA==",
                         "Accept":"application/json, text/plain, */*",
@@ -850,7 +850,7 @@ describe('$kinvey', function() {
 
                 beforeEach(function() {
                     $httpBackend
-                        .when('POST', 'https://baas.kinvey.com/rpc/appkey/check-username-exists?')
+                        .when('POST', 'https://baas.kinvey.com/rpc/appkey/check-username-exists')
                         .respond({
                             usernameExists: false
                         });
@@ -880,7 +880,7 @@ describe('$kinvey', function() {
                 });
 
                 it('should make a POST request to /rpc/appkey/check-username-exists', function() {
-                    $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/check-username-exists?', {
+                    $httpBackend.expectPOST('https://baas.kinvey.com/rpc/appkey/check-username-exists', {
                         username: 'username'
                     }, {
                         "X-Kinvey-API-Version":3,
