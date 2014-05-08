@@ -1,6 +1,6 @@
 # angular-kinvey
 
-[![Build Status](https://travis-ci.org/ninjatronic/angular-kinvey.png)](https://travis-ci.org/ninjatronic/angular-kinvey) [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/ninjatronic/angular-kinvey/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+[![Build Status](https://travis-ci.org/ninjatronic/angular-kinvey.png)](https://travis-ci.org/ninjatronic/angular-kinvey) 
 
 **angular-kinvey** aims to provide easy-to-consume support for BaaS services provided by [Kinvey](http://kinvey.com/).
 This API allows an AngularJS app to interact with its backend on Kinvey programatically using the `$resource` 
